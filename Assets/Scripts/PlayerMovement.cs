@@ -18,6 +18,9 @@ public class PlayerMovement : MonoBehaviour
     // Latest stick/WASD value, read in Update and applied in FixedUpdate
     Vector2 input;
 
+    // Read by TimeController to decide how fast the world runs
+    public Vector2 MoveInput => input;
+
     void Awake()
     {
         body = GetComponent<Rigidbody>();
