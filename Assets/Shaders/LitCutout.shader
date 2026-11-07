@@ -130,7 +130,7 @@ Shader "Out Of Time/Lit Cutout"
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature_local_fragment _EMISSION
+            #pragma multi_compile_local_fragment _ _EMISSION // always built: emissive props (crystal, fire, machine) keep their glow while cut
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
@@ -191,13 +191,14 @@ Shader "Out Of Time/Lit Cutout"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             #include "OccluderCutout.hlsl"
+            float _OOT_Strength; // per swapped material, 0..1, set by OccluderFader
             void CutoutLitFragment(Varyings input, out half4 outColor : SV_Target0
             #ifdef _WRITE_RENDERING_LAYERS
                 , out uint outRenderingLayers : SV_Target1
             #endif
             )
             {
-                OOTCutout(input.positionCS, input.positionWS);
+                OOTCutout(input.positionCS, input.positionWS, _OOT_Strength * _OOT_CutoutPlayer.w);
                 LitPassFragment(input, outColor
             #ifdef _WRITE_RENDERING_LAYERS
                     , outRenderingLayers
@@ -291,7 +292,7 @@ Shader "Out Of Time/Lit Cutout"
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             //#pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature_local_fragment _EMISSION
+            #pragma multi_compile_local_fragment _ _EMISSION // always built: emissive props (crystal, fire, machine) keep their glow while cut
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature_local_fragment _OCCLUSIONMAP
@@ -391,9 +392,10 @@ Shader "Out Of Time/Lit Cutout"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             #include "OccluderCutout.hlsl"
+            float _OOT_Strength; // per swapped material, 0..1, set by OccluderFader
             half CutoutDepthOnlyFragment(Varyings input) : SV_TARGET
             {
-                OOTCutoutScreen(input.positionCS);
+                OOTCutoutScreen(input.positionCS, _OOT_Strength * _OOT_CutoutPlayer.w);
                 return DepthOnlyFragment(input);
             }
 
@@ -453,13 +455,14 @@ Shader "Out Of Time/Lit Cutout"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
             #include "OccluderCutout.hlsl"
+            float _OOT_Strength; // per swapped material, 0..1, set by OccluderFader
             void CutoutDepthNormalsFragment(Varyings input, out half4 outNormalWS : SV_Target0
             #ifdef _WRITE_RENDERING_LAYERS
                 , out uint outRenderingLayers : SV_Target1
             #endif
             )
             {
-                OOTCutoutScreen(input.positionCS);
+                OOTCutoutScreen(input.positionCS, _OOT_Strength * _OOT_CutoutPlayer.w);
                 DepthNormalsFragment(input, outNormalWS
             #ifdef _WRITE_RENDERING_LAYERS
                     , outRenderingLayers
@@ -494,7 +497,7 @@ Shader "Out Of Time/Lit Cutout"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
-            #pragma shader_feature_local_fragment _EMISSION
+            #pragma multi_compile_local_fragment _ _EMISSION // always built: emissive props (crystal, fire, machine) keep their glow while cut
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A

@@ -24,6 +24,9 @@ Shader "Out Of Time/Greyscale Sprite"
             #pragma fragment frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+            // Same see-through circle as walls (OccluderFader), so the border's tile tops cut with their wall
+            #include "OccluderCutout.hlsl"
+
             struct Attributes
             {
                 float4 positionOS : POSITION;
@@ -36,6 +39,7 @@ Shader "Out Of Time/Greyscale Sprite"
                 float4 positionHCS : SV_POSITION;
                 float4 color : COLOR;
                 float2 uv : TEXCOORD0;
+                float3 positionWS : TEXCOORD1;
             };
 
             TEXTURE2D(_MainTex);
@@ -50,7 +54,8 @@ Shader "Out Of Time/Greyscale Sprite"
             Varyings vert(Attributes input)
             {
                 Varyings output;
-                output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                output.positionHCS = TransformWorldToHClip(output.positionWS);
                 output.uv = input.uv;
                 output.color = input.color;
                 return output;
@@ -58,6 +63,8 @@ Shader "Out Of Time/Greyscale Sprite"
 
             half4 frag(Varyings input) : SV_Target
             {
+                OOTCutout(input.positionHCS, input.positionWS, _OOT_CutoutCenter.w);
+
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * input.color;
 
                 // Perceived brightness, so greens and reds turn into sensible greys

@@ -68,7 +68,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: 79f40c979e4a44c3f997fcf0ac799299, type: 3}
     m_FontSize: 72
     m_FontStyle: 1
     m_BestFit: 0
@@ -111,6 +111,16 @@ MonoBehaviour:
   warningSeconds: 10
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   warningColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  multiplierSize: 0.55
+  multiplierFullColor: {r: 1, g: 1, b: 1, a: 0.6}
+  multiplierSlowColor: {r: 0.45, g: 0.8, b: 1, a: 1}
+  multiplierSprintColor: {r: 1, g: 0.65, b: 0.25, a: 1}
+  lossColor: {r: 1, g: 0.15, b: 0.15, a: 1}
+  gainColor: {r: 0.4, g: 1, b: 0.5, a: 1}
+  flashTime: 0.5
+  popupTime: 0.9
+  popupDrift: 60
+  popupSize: 0.7
 --- !u!1 &8758837836486221302
 GameObject:
   m_ObjectHideFlags: 0
