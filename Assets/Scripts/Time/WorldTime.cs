@@ -9,6 +9,13 @@ public static class WorldTime
     // 0 = frozen, 1 = normal speed. Set every frame by TimeController
     public static float Scale = 1f;
 
+    // Extra multiplier on how fast the Clock drains (up to 2 at full sprint). Doesn't speed up the world.
+    // Set every frame by TimeController
+    public static float ClockCost = 1f;
+
+    // 0..1: how far into a sprint the player is. Eases with the player's speed. Set by TimeController
+    public static float Sprint;
+
     // Use in Update: how much world time passed this frame
     public static float Delta => Time.deltaTime * Scale;
 
@@ -20,5 +27,7 @@ public static class WorldTime
     static void Reset()
     {
         Scale = 1f;
+        ClockCost = 1f;
+        Sprint = 0f;
     }
 }

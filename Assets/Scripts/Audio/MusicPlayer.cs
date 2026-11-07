@@ -27,7 +27,7 @@ public class MusicPlayer : MonoBehaviour
     [Range(0f, 1f)] public float volume = 0.8f;
 
     [Tooltip("Seconds to fade out the old era and fade in the new one")]
-    public float fadeTime = 2.5f;
+    public float fadeTime = 0.5f;
 
     [Tooltip("Roughly how many seconds the drums/muffle/reverb take to follow the player stopping or moving")]
     public float freezeFadeTime = 1.5f;
@@ -41,6 +41,9 @@ public class MusicPlayer : MonoBehaviour
 
     [Tooltip("Reverb tail length in seconds")]
     public float reverbDecay = 3f;
+
+    [Tooltip("Drums volume multiplier while sprinting. AudioSource volume caps at 1, so at volume 0.8 the most is 1.25 (about +2 dB)")]
+    public float sprintDrumBoost = 1.25f;
 
     AudioLowPassFilter musicFilter;
     AudioLowPassFilter drumsFilter;
@@ -161,8 +164,11 @@ public class MusicPlayer : MonoBehaviour
 
         musicSource.volume = volume * eraFade;
 
+        // Sprinting pushes the drums up, building with the sprint itself (already eased by the player's acceleration)
+        float boost = Mathf.Lerp(1f, sprintDrumBoost, WorldTime.Sprint);
+
         // Drums disappear as the world stops
-        drumsSource.volume = volume * eraFade * Mathf.SmoothStep(0f, 1f, s);
+        drumsSource.volume = volume * eraFade * boost * Mathf.SmoothStep(0f, 1f, s);
 
         // Exponential sweep sounds even to the ear: 800 Hz when frozen, fully open when moving
         float cutoff = frozenCutoff * Mathf.Pow(openCutoff / frozenCutoff, s);
