@@ -35,8 +35,8 @@ public class ClockUI : MonoBehaviour
         // Format as m:ss.s, e.g. 0:09.4
         float t = clock.Remaining;
         int minutes = (int)(t / 60f);
-        float seconds = t % 60f;
-        label.text = $"{minutes}:{seconds:00.0}";
+        float seconds = t % 60f; // 0-59.999
+        label.text = $"{minutes}:{seconds:00.00}";
 
         bool low = t <= warningSeconds;
         label.color = low ? warningColor : normalColor;

@@ -77,6 +77,7 @@ public class Clock : MonoBehaviour
                 controller.enabled = false;
             player.enabled = false;
             player.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+            player.PlayDeath();
         }
 
         // Set after disabling the controller, since its OnDisable resets the scale to 1

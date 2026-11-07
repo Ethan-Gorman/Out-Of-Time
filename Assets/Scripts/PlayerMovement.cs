@@ -12,6 +12,10 @@ public class PlayerMovement : MonoBehaviour
     // The billboard sprite on the child "Sprite" object, flipped to face the move direction
     public SpriteRenderer sprite;
 
+    // The Animator on the same "Sprite" child, using AcPlayer (Stand / Run / Dead).
+    // Runs on normal time: only the world slows down, never the player
+    public Animator animator;
+
     Rigidbody body;
     InputAction move;
 
@@ -38,6 +42,17 @@ public class PlayerMovement : MonoBehaviour
         // Only flip when moving sideways, so the sprite keeps its last facing when moving up/down or idle
         if (sprite != null && Mathf.Abs(input.x) > 0.01f)
             sprite.flipX = input.x < 0f;
+
+        // AcPlayer switches Stand -> Run when Speed > 0.01, and back when it drops below
+        if (animator != null)
+            animator.SetFloat("Speed", input.magnitude);
+    }
+
+    // Plays the death animation. Called by Clock when time runs out
+    public void PlayDeath()
+    {
+        if (animator != null)
+            animator.SetTrigger("Dead");
     }
 
     void FixedUpdate()
