@@ -93,7 +93,11 @@ public class Clock : MonoBehaviour
         yield return new WaitForSecondsRealtime(restartDelay);
         WorldTime.Scale = 1f;
 
-        // Reload the current scene to start the level again
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Reload the current scene to start the level again.
+        // Goes through LevelManager so all scene loading lives in one place
+        if (LevelManager.Instance != null)
+            LevelManager.Instance.RestartLevel();
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
