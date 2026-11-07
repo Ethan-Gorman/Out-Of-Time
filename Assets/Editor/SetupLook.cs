@@ -11,6 +11,7 @@ using UnityEngine.Rendering.Universal;
 //  3. Imports the era palettes and wires them into the Persistent prefab (EraPalette)
 //  4. Lowers the toon ambient (torches stand out), gives the inner walls (MedievalStone) the same top tiles
 //     as the border's wall tops, darkens the floor a little, and lets the player cast a sprite shadow
+//  5. Puts the player's sprite on Sprite Lit, so sun shadows and torch light affect it like the floor
 // Only assets and prefabs change, no scene files. Safe to run again.
 // Run via Tools > Out Of Time > Setup Look, then delete this file.
 public static class SetupLook
@@ -72,6 +73,7 @@ public static class SetupLook
         SetupLighting(cutout);
         SetupWallTops();
         SetupPlayerShadow(cutout);
+        SetupPlayerLighting();
         AssetDatabase.SaveAssets();
         Debug.Log("[SetupLook] Done.");
     }
@@ -237,6 +239,46 @@ public static class SetupLook
             if (caster == null)
                 caster = target.AddComponent<SpriteShadowCaster>();
             caster.shadowMaterial = mat;
+            PrefabUtility.SaveAsPrefabAsset(root, playerPath);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+    }
+
+    // The player's sprite gets the lit sprite shader, so sun shadows and torch light affect it like the floor
+    static void SetupPlayerLighting()
+    {
+        var shader = Shader.Find("Out Of Time/Sprite Lit");
+        if (shader == null)
+        {
+            Debug.LogWarning("[SetupLook] Sprite Lit shader missing; player lighting skipped");
+            return;
+        }
+
+        const string path = "Assets/Materials/SpriteLit.mat";
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (mat == null)
+        {
+            mat = new Material(shader);
+            AssetDatabase.CreateAsset(mat, path);
+        }
+        mat.shader = shader;
+        EditorUtility.SetDirty(mat);
+
+        const string playerPath = "Assets/prefabs/Player.prefab";
+        var root = PrefabUtility.LoadPrefabContents(playerPath);
+        try
+        {
+            var billboard = root.GetComponentInChildren<Billboard>(true);
+            var sprite = billboard != null ? billboard.GetComponent<SpriteRenderer>() : null;
+            if (sprite == null)
+            {
+                Debug.LogWarning("[SetupLook] Player has no billboard sprite; player lighting skipped");
+                return;
+            }
+            sprite.sharedMaterial = mat;
             PrefabUtility.SaveAsPrefabAsset(root, playerPath);
         }
         finally
