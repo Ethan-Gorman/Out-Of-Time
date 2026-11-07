@@ -17,6 +17,9 @@ public class TimeMachine : Interactable
     [Header("Travel")]
     public bool loadNextEra = false;
 
+    [Header("Text")]
+    public string inspectPrompt = "Inspect the time machine";
+    public string repairPrompt = "Repair the time machine";
     [TextArea] public string[] brokenLines = { "It's completely dead. I need a Time Crystal to power it." };
 
     public UnityEvent onRepaired;
@@ -24,16 +27,25 @@ public class TimeMachine : Interactable
 
     public State Current { get; private set; } = State.Broken;
 
-    bool HasCrystal => MedievalLevel.Instance != null && MedievalLevel.Instance.HasCrystal;
+    // The level's story (MedievalLevel, CavemanLevel...): decides when the machine can be repaired
+    ITimeMachineStory story;
+
+    bool HasParts => story != null && story.CanRepair;
 
     void Awake()
     {
         Refresh();
+        foreach (var behaviour in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
+            if (behaviour is ITimeMachineStory s)
+            {
+                story = s;
+                break;
+            }
     }
 
     public override string Prompt => Current switch
     {
-        State.Broken => HasCrystal ? "Repair the time machine" : "Inspect the time machine",
+        State.Broken => HasParts ? repairPrompt : inspectPrompt,
         State.Repaired => "Board the time machine",
         _ => "",
     };
@@ -44,17 +56,16 @@ public class TimeMachine : Interactable
     {
         switch (Current)
         {
-            case State.Broken when HasCrystal:
+            case State.Broken when HasParts:
                 Current = State.Repaired;
                 Refresh();
-                if (MedievalLevel.Instance != null)
-                    MedievalLevel.Instance.TimeMachineRepaired();
+                story?.TimeMachineRepaired();
                 onRepaired.Invoke();
                 break;
 
             case State.Broken:
                 if (MedievalUI.Instance != null)
-                    MedievalUI.Instance.Say(brokenLines);
+                    MedievalUI.Instance.Say(story?.NotReadyLines ?? brokenLines);
                 break;
 
             case State.Repaired:
@@ -64,10 +75,10 @@ public class TimeMachine : Interactable
                 if (LevelManager.Instance != null)
                     LevelManager.Instance.FinishLevel();
                 onBoarded.Invoke();
-                if (loadNextEra && LevelManager.Instance != null)
+                bool travelling = loadNextEra && LevelManager.Instance != null;
+                story?.TimeMachineBoarded(travelling);
+                if (travelling)
                     LevelManager.Instance.CompleteLevel();
-                else if (MedievalLevel.Instance != null)
-                    MedievalLevel.Instance.TimeMachineBoarded();
                 break;
         }
     }

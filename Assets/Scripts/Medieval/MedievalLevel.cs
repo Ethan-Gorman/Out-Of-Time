@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 // Runs the Medieval Era story: intro dialogue, objectives, and what happens when the
 // Time Crystal is collected and the time machine is repaired. All text is editable in the Inspector.
 // Sits on the LevelDirector object in the Medieval scene.
-public class MedievalLevel : MonoBehaviour
+public class MedievalLevel : MonoBehaviour, ITimeMachineStory
 {
     public static MedievalLevel Instance { get; private set; }
 
@@ -96,6 +96,16 @@ public class MedievalLevel : MonoBehaviour
         ui.SetObjective("");
         ui.Say(departLines);
         ui.ShowBanner(nextEraBanner);
+    }
+
+    // ITimeMachineStory
+    public bool CanRepair => HasCrystal;
+    public string[] NotReadyLines => null;
+
+    public void TimeMachineBoarded(bool travelling)
+    {
+        if (!travelling)
+            TimeMachineBoarded();
     }
 
     // Reloads the current scene. Works even when the scene isn't in Build Settings yet (Editor only)

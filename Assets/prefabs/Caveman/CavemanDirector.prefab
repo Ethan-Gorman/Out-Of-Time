@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4330928200211322238
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4199902563772172868}
+  - component: {fileID: 6698110576054053969}
+  m_Layer: 0
+  m_Name: CavemanDirector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4199902563772172868
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4330928200211322238}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6698110576054053969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4330928200211322238}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02e09f6a73cc5e34bb127be8c279b0f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CavemanLevel
+  axeWoodCost: 2
+  axeStoneCost: 2
+  magneticStonesNeeded: 3
+  boarReward: 30
+  introDelay: 0.6
+  introLines:
+  - The time machine's temporal compass is cracked. It can't find its way through time.
+  - Magnetic stones could fix it... but first I need tools.
+  gatherObjective: Gather wood and stone
+  canCraftLines:
+  - That's enough to make a Stone Axe.
+  craftObjective: Craft a Stone Axe at the flat stone
+  axeLines:
+  - A Stone Axe! Now I can deal with that boar.
+  - And cut through the brambles to the cave.
+  boarObjective: Hunt the wild boar
+  boarLines:
+  - The boar is down. That bought me some time!
+  caveObjective: Find the magnetic stones in the dark cave
+  stoneLines:
+  - A glowing magnetic stone!
+  allStonesLines:
+  - That's all three. Back to the time machine!
+  returnObjective: Return to the time machine
+  repairedLines:
+  - The compass spins true! The time machine is repaired.
+  - 'Next stop: the Medieval Era.'
+  boardObjective: Board the time machine
+  nextEraBanner: MEDIEVAL ERA
