@@ -230,7 +230,7 @@ MonoBehaviour:
   musicSource: {fileID: 6190428888962980950}
   drumsSource: {fileID: 5778644098747000287}
   volume: 0.8
-  fadeTime: 2.5
+  fadeTime: 0.5
   freezeFadeTime: 1.5
   frozenCutoff: 800
   openCutoff: 22000

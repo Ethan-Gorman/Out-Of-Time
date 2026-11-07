@@ -242,5 +242,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31f30bc484e594aa29848431ebafa708, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeController
-  minScale: 0.02
+  minScale: 0.05
   responsiveness: 10

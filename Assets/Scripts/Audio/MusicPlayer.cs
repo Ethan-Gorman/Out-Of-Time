@@ -27,7 +27,7 @@ public class MusicPlayer : MonoBehaviour
     [Range(0f, 1f)] public float volume = 0.8f;
 
     [Tooltip("Seconds to fade out the old era and fade in the new one")]
-    public float fadeTime = 2.5f;
+    public float fadeTime = 0.5f;
 
     [Tooltip("Roughly how many seconds the drums/muffle/reverb take to follow the player stopping or moving")]
     public float freezeFadeTime = 1.5f;
