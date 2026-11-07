@@ -24,8 +24,9 @@ Shader "Out Of Time/Greyscale Sprite"
             #pragma fragment frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            // Same see-through circle as walls (OccluderFader), so the border's tile tops cut with their wall
+            // Same see-through hole as walls: OccluderFader cuts a wall side's tile tops together with its block
             #include "OccluderCutout.hlsl"
+            float _OOT_Strength; // per renderer, 0..1, set by OccluderFader (e.g. a wall side's tile tops)
 
             struct Attributes
             {
@@ -63,7 +64,7 @@ Shader "Out Of Time/Greyscale Sprite"
 
             half4 frag(Varyings input) : SV_Target
             {
-                OOTCutout(input.positionHCS, input.positionWS, _OOT_CutoutCenter.w);
+                OOTCutout(input.positionHCS, input.positionWS, _OOT_Strength);
 
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * input.color;
 

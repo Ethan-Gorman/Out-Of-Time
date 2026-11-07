@@ -169,16 +169,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OccluderFader
   target: {fileID: 0}
   targetHeight: 0.6
-  radius: 0.5
+  headInset: 0.15
+  headSpread: 0.6
   circleRadius: 0.18
   circleSoftness: 0.06
-  fadedAlpha: 0.3
+  circleWidth: 1.6
+  fadedAlpha: 0
+  tintColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.05}
+  capColor: {r: 0.2, g: 0.2, b: 0.23, a: 1}
   fadeTime: 0.15
+  minCutHeight: 0.3
+  cutHeightRamp: 0.3
+  tallerThanPlayerBy: 0
   layers:
     serializedVersion: 2
     m_Bits: 4294967295
   cutoutShader: {fileID: 4800000, guid: 64013cbac3cc34f259a0a53f08a5dee6, type: 3}
+  tintShader: {fileID: 4800000, guid: 6f7402f8721f44667b7ed5fb68ce9372, type: 3}
+  capShader: {fileID: 4800000, guid: f2f76adb6e98a42dfa2823ff595a1633, type: 3}
   variantKeeper: {fileID: 2100000, guid: db6ee693e925948e6aa5167a3b90f14d, type: 2}
+  tintKeeper: {fileID: 2100000, guid: 082055eb6ad634c96b2978c538947a29, type: 2}
+  capKeeper: {fileID: 2100000, guid: 14eeb18ea28104c229d1b97625ccfc07, type: 2}
 --- !u!1 &8787543590892288561
 GameObject:
   m_ObjectHideFlags: 0

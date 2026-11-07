@@ -127,10 +127,11 @@ public class LevelBorder : MonoBehaviour
         grid.cellLayout = sourceGrid.cellLayout;
         grid.cellSwizzle = sourceGrid.cellSwizzle;
 
-        // Sort every cell around the floor into wall or outside
+        // Sort every cell around the floor into outside, or one of the four wall sides.
+        // South and north run the full width (corners included); west and east fill in between
         int t = wallThickness, m = outsideMargin;
-        var wallCells = new List<Vector3Int>();
         var outsideCells = new List<Vector3Int>();
+        var sides = new[] { new List<Vector3Int>(), new List<Vector3Int>(), new List<Vector3Int>(), new List<Vector3Int>() };
         for (int x = b.xMin - t - m; x < b.xMax + t + m; x++)
         {
             for (int y = b.yMin - t - m; y < b.yMax + t + m; y++)
@@ -139,28 +140,52 @@ public class LevelBorder : MonoBehaviour
                 if (inside)
                     continue;
 
+                var cell = new Vector3Int(x, y, 0);
                 bool wall = x >= b.xMin - t && x < b.xMax + t && y >= b.yMin - t && y < b.yMax + t;
-                (wall ? wallCells : outsideCells).Add(new Vector3Int(x, y, 0));
+                if (!wall)
+                    outsideCells.Add(cell);
+                else if (y < b.yMin)
+                    sides[0].Add(cell);
+                else if (y >= b.yMax)
+                    sides[1].Add(cell);
+                else if (x < b.xMin)
+                    sides[2].Add(cell);
+                else
+                    sides[3].Add(cell);
             }
         }
 
         var rng = new System.Random(seed);
         int order = map.GetComponent<TilemapRenderer>().sortingOrder;
         CreateLayer("Outside", outsideCells, outsideTiles, outsideMaterial, floorY, order, rng, map);
-        CreateLayer("Wall Top", wallCells, wallTiles, wallTopMaterial, floorY + wallHeight + 0.01f, order + 1, rng, map);
 
-        // Four solid blocks under the wall tops: south, north, west, east
-        CreateBlock("Wall South", new Vector3Int(b.xMin - t, b.yMin - t), new Vector3Int(b.xMax + t, b.yMin), floorY);
-        CreateBlock("Wall North", new Vector3Int(b.xMin - t, b.yMax), new Vector3Int(b.xMax + t, b.yMax + t), floorY);
-        CreateBlock("Wall West", new Vector3Int(b.xMin - t, b.yMin), new Vector3Int(b.xMin, b.yMax), floorY);
-        CreateBlock("Wall East", new Vector3Int(b.xMax, b.yMin), new Vector3Int(b.xMax + t, b.yMax), floorY);
+        // Each side is a solid block with its own tile top. The top is linked to the block, so the
+        // see-through hole (OccluderFader) cuts both together, and only on the side that hides the player
+        var names = new[] { "South", "North", "West", "East" };
+        var mins = new[]
+        {
+            new Vector3Int(b.xMin - t, b.yMin - t), new Vector3Int(b.xMin - t, b.yMax),
+            new Vector3Int(b.xMin - t, b.yMin), new Vector3Int(b.xMax, b.yMin),
+        };
+        var maxs = new[]
+        {
+            new Vector3Int(b.xMax + t, b.yMin), new Vector3Int(b.xMax + t, b.yMax + t),
+            new Vector3Int(b.xMin, b.yMax), new Vector3Int(b.xMax + t, b.yMax),
+        };
+        for (int i = 0; i < 4; i++)
+        {
+            var block = CreateBlock("Wall " + names[i], mins[i], maxs[i], floorY);
+            var top = CreateLayer("Wall Top " + names[i], sides[i], wallTiles, wallTopMaterial, floorY + wallHeight + 0.01f, order + 1, rng, map);
+            if (top != null)
+                block.AddComponent<OccluderLink>().alsoCut = new Renderer[] { top };
+        }
     }
 
-    void CreateLayer(string name, List<Vector3Int> cells, TileBase[] tiles, Material material, float worldY, int order, System.Random rng, Tilemap source)
+    TilemapRenderer CreateLayer(string name, List<Vector3Int> cells, TileBase[] tiles, Material material, float worldY, int order, System.Random rng, Tilemap source)
     {
         var choices = tiles?.Where(tile => tile != null).ToArray();
         if (cells.Count == 0 || choices == null || choices.Length == 0)
-            return;
+            return null;
 
         var go = new GameObject(name) { hideFlags = HideFlags.DontSave };
         go.transform.SetParent(root.transform, false);
@@ -183,10 +208,11 @@ public class LevelBorder : MonoBehaviour
         for (int i = 0; i < picked.Length; i++)
             picked[i] = choices[rng.Next(choices.Length)];
         map.SetTiles(cells.ToArray(), picked);
+        return tilemapRenderer;
     }
 
     // A solid cube covering cells from minCell up to (not including) maxCell, with a collider
-    void CreateBlock(string name, Vector3Int minCell, Vector3Int maxCell, float baseY)
+    GameObject CreateBlock(string name, Vector3Int minCell, Vector3Int maxCell, float baseY)
     {
         Vector3 a = sourceGrid.CellToWorld(minCell);
         Vector3 c = sourceGrid.CellToWorld(maxCell);
@@ -200,6 +226,7 @@ public class LevelBorder : MonoBehaviour
 
         if (wallSideMaterial != null)
             block.GetComponent<MeshRenderer>().sharedMaterial = wallSideMaterial;
+        return block;
     }
 
     Tilemap FindFloor()

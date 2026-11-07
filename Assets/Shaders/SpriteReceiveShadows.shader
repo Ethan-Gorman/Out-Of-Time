@@ -17,7 +17,7 @@ Shader "Out Of Time/Sprite Receive Shadows"
         _LightMax ("Max Brightening", Range(0, 4)) = 1.2
 
         [Header(Clouds)]
-        _CloudStrength ("Cloud Shadow Strength", Range(0, 1)) = 0.12
+        _CloudStrength ("Cloud Shadow Strength", Range(0, 1)) = 0.4
         _CloudScale ("Cloud Size (smaller = bigger clouds)", Float) = 0.07
         _CloudSpeed ("Cloud Drift (xy, units per second)", Vector) = (0.6, 0.25, 0, 0)
     }
@@ -137,7 +137,7 @@ Shader "Out Of Time/Sprite Receive Shadows"
                 // Drifting clouds: two octaves of noise moving across the ground in world space
                 float2 cloudPos = input.positionWS.xz * _CloudScale + _Time.y * _CloudSpeed.xy * _CloudScale;
                 float cloud = ValueNoise(cloudPos) * 0.65 + ValueNoise(cloudPos * 2.3 + 17.0) * 0.35;
-                shadow = saturate(shadow + smoothstep(0.45, 0.8, cloud) * _CloudStrength);
+                shadow = saturate(shadow + smoothstep(0.35, 0.7, cloud) * _CloudStrength);
 
                 // Tint towards the shadow colour rather than plain black, which reads better with pixel art
                 c.rgb *= lerp(half3(1, 1, 1), _ShadowColor.rgb, shadow);

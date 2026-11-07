@@ -10,6 +10,7 @@ Shader "Out Of Time/Lit Cutout"
 
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
+        _OOT_WorldUV("World Space UVs (1 = on, Tiling = repeats per unit)", Range(0, 1)) = 0
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -191,14 +192,23 @@ Shader "Out Of Time/Lit Cutout"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             #include "OccluderCutout.hlsl"
-            float _OOT_Strength; // per swapped material, 0..1, set by OccluderFader
+            float _OOT_Strength; // per renderer, 0..1, set by OccluderFader through a MaterialPropertyBlock
+            float _OOT_WorldUV;  // 1 = map the base texture in world space (see Properties)
             void CutoutLitFragment(Varyings input, out half4 outColor : SV_Target0
             #ifdef _WRITE_RENDERING_LAYERS
                 , out uint outRenderingLayers : SV_Target1
             #endif
             )
             {
-                OOTCutout(input.positionCS, input.positionWS, _OOT_Strength * _OOT_CutoutPlayer.w);
+                OOTCutout(input.positionCS, input.positionWS, _OOT_Strength);
+                if (_OOT_WorldUV > 0.5)
+                {
+                    // Planar mapping on the face's main axis: walls tile the texture evenly at any size
+                    float3 n = abs(input.normalWS);
+                    float2 world = n.y > max(n.x, n.z) ? input.positionWS.xz
+                                 : (n.x > n.z ? input.positionWS.zy : input.positionWS.xy);
+                    input.uv = world * _BaseMap_ST.xy + _BaseMap_ST.zw;
+                }
                 LitPassFragment(input, outColor
             #ifdef _WRITE_RENDERING_LAYERS
                     , outRenderingLayers
@@ -392,10 +402,11 @@ Shader "Out Of Time/Lit Cutout"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             #include "OccluderCutout.hlsl"
-            float _OOT_Strength; // per swapped material, 0..1, set by OccluderFader
+            float _OOT_Strength; // per renderer, 0..1, set by OccluderFader through a MaterialPropertyBlock
+            float _OOT_WorldUV;  // 1 = map the base texture in world space (see Properties)
             half CutoutDepthOnlyFragment(Varyings input) : SV_TARGET
             {
-                OOTCutoutScreen(input.positionCS, _OOT_Strength * _OOT_CutoutPlayer.w);
+                OOTCutoutScreen(input.positionCS, _OOT_Strength);
                 return DepthOnlyFragment(input);
             }
 
@@ -455,14 +466,15 @@ Shader "Out Of Time/Lit Cutout"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitDepthNormalsPass.hlsl"
             #include "OccluderCutout.hlsl"
-            float _OOT_Strength; // per swapped material, 0..1, set by OccluderFader
+            float _OOT_Strength; // per renderer, 0..1, set by OccluderFader through a MaterialPropertyBlock
+            float _OOT_WorldUV;  // 1 = map the base texture in world space (see Properties)
             void CutoutDepthNormalsFragment(Varyings input, out half4 outNormalWS : SV_Target0
             #ifdef _WRITE_RENDERING_LAYERS
                 , out uint outRenderingLayers : SV_Target1
             #endif
             )
             {
-                OOTCutoutScreen(input.positionCS, _OOT_Strength * _OOT_CutoutPlayer.w);
+                OOTCutoutScreen(input.positionCS, _OOT_Strength);
                 DepthNormalsFragment(input, outNormalWS
             #ifdef _WRITE_RENDERING_LAYERS
                     , outRenderingLayers
@@ -594,5 +606,4 @@ Shader "Out Of Time/Lit Cutout"
     }
 
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
-    CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.LitShader"
 }
