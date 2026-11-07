@@ -112,3 +112,7 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Asset Store packs (licence forbids public redistribution, import locally)
+/[Aa]ssets/Undead Survivor/
+/[Aa]ssets/Undead Survivor.meta
