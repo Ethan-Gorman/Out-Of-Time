@@ -80,7 +80,7 @@ The Caveman Era is the opening survival-and-crafting level. The time machine's t
 
 The intended objective sequence is:
 
-1. Break trees for wood and rocks for stone.
+1. Take wood from the tribe's firewood stacks and break rocks for stone.
 2. Craft a Stone Axe at the flat knapping stone using **2 wood and 2 stone**.
 3. Defeat the wild boar with the axe. Its death restores **30 seconds** to the clock.
 4. Clear the cave brambles and collect all **3 magnetic stones**.
@@ -88,7 +88,7 @@ The intended objective sequence is:
 
 `Assets/Scripts/Caveman/CavemanLevel.cs` owns the story state, resource counts, crafting cost, boar reward, and repair requirement. `Breakable.cs`, `CraftingStation.cs`, `WildBoar.cs`, and `MagneticStone.cs` implement the Caveman interactions; the inventory readout and animated effects live in `CavemanInventoryUI.cs` and `CavemanSpriteAnimation.cs`. Caveman scene content is grouped into reusable prefabs under `Assets/prefabs/Caveman/` and composed in `Assets/Scenes/Caveman.unity`.
 
-Keep the project-wide **2.5D** presentation: gameplay and collisions use the 3D world/time systems, characters such as the player and boar use 2D billboard pixel sprites, and larger scenery such as trees and rocks uses stylized 3D forms with pixel-art materials. Small camp and cave details can remain sprites. The Caveman time machine uses the same design as the other eras; only its era-specific story text and travel setting differ. Reuse shared movement, clock, UI, and level-transition systems rather than creating era-specific replacements. Keep changes scoped to Caveman-owned files where possible, and ask before adding any animals; do not introduce dinosaurs.
+Keep the project-wide **2.5D** presentation: gameplay and collisions use the 3D world/time systems, characters such as the player and boar use 2D billboard pixel sprites, and larger scenery such as rocks, mountains and pillars uses stylized 3D forms with pixel-art materials (world-space textures at the sprites' pixel density, flat faces, hard shadows). Camp props and the cave villagers (`CaveNpc.cs`) are sprites. The level is built by Tools > Out Of Time > Build Caveman Era (`CavemanSceneBuilder`, `CavemanNature`, `CavemanSettlement`). The Caveman time machine uses the same design as the other eras; only its era-specific story text and travel setting differ. Reuse shared movement, clock, UI, and level-transition systems rather than creating era-specific replacements. Keep changes scoped to Caveman-owned files where possible, and ask before adding any animals; do not introduce dinosaurs.
 
 ### Music
 
