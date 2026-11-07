@@ -14,8 +14,8 @@ public static class CavemanSceneBuilder
     const string Sprites = "Assets/Sprites/Caveman";
     const string Textures = "Assets/Textures/Caveman";
     const string ScenePath = "Assets/Scenes/Caveman.unity";
-    static Material grassMat, stoneMat, woodMat, barkMat, leafMat, crystalMat, caveMat, pathMat, spriteMat;
-    static Sprite bramble, logSprite, potSprite, basketSprite, herbSprite, glyphSprite;
+    static Material floorMat, stoneMat, woodMat, barkMat, leafMat, crystalMat, caveMat, pathMat, spriteMat;
+    static Sprite bramble, firewoodSprite, logSprite, potSprite, basketSprite, herbSprite, glyphSprite;
     static Sprite[] boar, fireFrames;
 
     [MenuItem("Tools/Out Of Time/Build Caveman Era")]
@@ -39,6 +39,9 @@ public static class CavemanSceneBuilder
         AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         Instantiate(Prefabs + "/CavemanEssentials.prefab"); Instantiate(Prefabs + "/CavemanDirector.prefab"); Instantiate(Prefabs + "/CavemanLevel.prefab");
+        // Inside a cavern: dim, warm ambient so the fires and torches carry the light
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.44f, 0.38f, 0.33f);
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddBuildScenes();
         Debug.Log("Built Caveman prefabs and Assets/Scenes/Caveman.unity.");
@@ -48,25 +51,22 @@ public static class CavemanSceneBuilder
 
     static void MakeArt()
     {
-        Texture2D grass = Texture("Grass32", 32, (x, y) =>
-        {
-            int n = (x * 47 + y * 83 + x * y * 13) % 53;
-            return n < 4 ? Hex("B2AF70") : n < 12 ? Hex("879C58") : n < 17 ? Hex("526B3C") : Hex("6E8748");
-        });
-        Texture2D stoneTexture = Texture("Stone32", 32, (x, y) =>
-        {
-            int n = (x * 71 + y * 37 + x * y * 9) % 59;
-            return n < 4 ? Hex("C3C2B3") : n < 14 ? Hex("969B91") : n < 22 ? Hex("4B5555") : Hex("707977");
-        });
+        Texture2D caveFloor = Texture("CaveFloor32", 32, CaveFloorPixel());
+        Texture2D stoneTexture = Texture("Stone32", 32, RockPixel());
         Texture2D woodTexture = Texture("Wood32", 32, (x, y) =>
         {
             int groove = (x + (y / 8) * 3) % 11;
             return groove < 2 ? Hex("493021") : groove < 4 ? Hex("80502F") : (y % 8 == 1 ? Hex("C18A50") : Hex("A46B3A"));
         });
+        // Bark as clean vertical grooves (dark groove, lit ridge, two body tones), stepping sideways every
+        // 11 rows, plus two knots: readable pixel shapes rather than noise
         Texture2D barkTexture = Texture("Bark32", 32, (x, y) =>
         {
-            int n = (x * 31 + y * 11 + x * y * 5) % 37;
-            return x % 7 < 2 ? Hex("50301F") : n < 8 ? Hex("BE8145") : n < 16 ? Hex("89512F") : Hex("70432B");
+            int k = (x + (y / 11) * 3) % 8;
+            float kx = (x - 9) / 2.5f, ky = (y - 20) / 2f, jx = (x - 25) / 2f, jy = (y - 6) / 2.5f;
+            if (kx * kx + ky * ky < 1f || jx * jx + jy * jy < 1f) return Hex("50301F");
+            if (kx * kx + ky * ky < 2.2f || jx * jx + jy * jy < 2.2f) return Hex("BE8145");
+            return k == 0 ? Hex("50301F") : k == 1 ? Hex("BE8145") : k < 5 ? Hex("89512F") : Hex("70432B");
         });
         Texture2D leafTexture = Texture("Leaves32", 32, (x, y) =>
         {
@@ -78,16 +78,18 @@ public static class CavemanSceneBuilder
             int n = (x + y * 3) % 17;
             return n < 3 ? Hex("C8FFF0") : n < 7 ? Hex("5FD1CC") : n < 11 ? Hex("277F8A") : Hex("1E596A");
         });
-        grassMat = Material("Grass", grass); stoneMat = Material("Stone", stoneTexture); woodMat = Material("Wood", woodTexture);
+        floorMat = Material("CaveFloor", caveFloor); floorMat.SetFloat("_OOT_WorldUV", 1f); stoneMat = Material("Stone", stoneTexture); woodMat = Material("Wood", woodTexture);
         barkMat = Material("Bark", barkTexture); leafMat = Material("Leaves", leafTexture); crystalMat = Material("Crystal", crystalTexture, true);
         caveMat = Material("CaveStone", stoneTexture); caveMat.color = new Color(0.34f, 0.39f, 0.42f);
         pathMat = Material("StonePath", stoneTexture);
-        grassMat.SetTextureScale("_BaseMap", new Vector2(26, 13)); stoneMat.SetTextureScale("_BaseMap", new Vector2(1.5f, 1.5f));
+        floorMat.SetTextureScale("_BaseMap", new Vector2(0.5f, 0.5f)); stoneMat.SetTextureScale("_BaseMap", new Vector2(0.5f, 0.5f)); stoneMat.SetFloat("_OOT_WorldUV", 1f);
         woodMat.SetTextureScale("_BaseMap", new Vector2(2, 2)); barkMat.SetTextureScale("_BaseMap", new Vector2(1, 2));
-        leafMat.SetTextureScale("_BaseMap", new Vector2(1.4f, 1.4f)); caveMat.SetTextureScale("_BaseMap", new Vector2(9, 2)); pathMat.SetTextureScale("_BaseMap", new Vector2(15, 1));
+        leafMat.SetTextureScale("_BaseMap", new Vector2(1.4f, 1.4f)); caveMat.SetTextureScale("_BaseMap", new Vector2(0.5f, 0.5f)); caveMat.SetFloat("_OOT_WorldUV", 1f); pathMat.SetTextureScale("_BaseMap", new Vector2(15, 1));
         spriteMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/SpriteLit.mat");
         AssetDatabase.DeleteAsset(Sprites + "/Tree.png"); AssetDatabase.DeleteAsset(Sprites + "/Rock.png"); AssetDatabase.DeleteAsset(Sprites + "/MagneticStone.png");
+        AssetDatabase.DeleteAsset(Mats + "/Grass.mat"); AssetDatabase.DeleteAsset(Textures + "/Grass32.png");
         bramble = Sprite("Bramble", 32, 32, BramblePixels);
+        firewoodSprite = Sprite("FirewoodStack", 40, 30, FirewoodPixels);
         logSprite = Sprite("CampLog", 32, 24, LogPixels);
         potSprite = Sprite("ClayPot", 32, 32, PotPixels);
         basketSprite = Sprite("WovenBasket", 32, 28, BasketPixels);
@@ -103,13 +105,67 @@ public static class CavemanSceneBuilder
     {
         string path = Mats + "/" + name + ".mat";
         Material m = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (m == null) { m = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(m, path); }
+        if (m == null) { m = new Material(Shader.Find("Out Of Time/Lit Cutout") ?? Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(m, path); }
         m.SetTexture("_BaseMap", texture); m.color = Color.white;
-        if (emissive) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Hex("46D8D5") * 1.7f); }
+        // RealtimeEmissive: with the default "emissive is black" flag, URP's material check strips _EMISSION on save
+        if (emissive) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Hex("46D8D5") * 1.7f); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive; }
         EditorUtility.SetDirty(m); return m;
     }
 
-    static Texture2D Texture(string name, int size, Func<int, int, Color> pixel)
+    // Dusty cave earth: warm grey-brown with soft lighter and darker drifts (periodic, so it tiles), grit and pebbles
+    static Func<int, int, Color> CaveFloorPixel()
+    {
+        // Drawn like a 16-bit floor tile: no lone random pixels, only small readable shapes. Pebbles (lit top row,
+        // dark row under them), short cracks and paired grit on three broad drifts of colour
+        var rng = new System.Random(7);
+        var tile = new Color[32, 32];
+        float tau = Mathf.PI * 2f / 32f;
+        for (int y = 0; y < 32; y++)
+            for (int x = 0; x < 32; x++)
+            {
+                float v = Mathf.Sin(tau * (x + 2 * y) + 1.3f) * 0.5f + Mathf.Sin(tau * (3 * x - y) + 0.4f) * 0.3f + Mathf.Sin(tau * (2 * x + 5 * y)) * 0.2f;
+                tile[x, y] = v > 0.35f ? Hex("6D6761") : v < -0.35f ? Hex("55504B") : Hex("625C57");
+            }
+        void Set(int x, int y, string c) => tile[(x % 32 + 32) % 32, (y % 32 + 32) % 32] = Hex(c);
+        for (int i = 0; i < 7; i++)
+        {
+            int x = rng.Next(32), y = rng.Next(32), w = rng.Next(2, 4);
+            for (int k = 0; k < w; k++) { Set(x + k, y + 1, "8A8379"); Set(x + k, y, "766F67"); Set(x + k, y - 1, "48433F"); }
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            int x = rng.Next(32), y = rng.Next(32), dy = rng.Next(2) * 2 - 1;
+            for (int k = 0; k < 4; k++) Set(x + k, y + dy * (k / 2), "4B4641");
+        }
+        for (int i = 0; i < 9; i++) { int x = rng.Next(32), y = rng.Next(32); Set(x, y, "7F7870"); Set(x + 1, y, "7F7870"); }
+        return (x, y) => tile[x, y];
+    }
+
+    // Pixel-art rock in the same warm greys as the cobbles: three broad tones in soft drifts (not per-pixel noise),
+    // short dark cracks with a lit pixel above each, and a few pale flecks. Periodic, so it tiles
+    static Func<int, int, Color> RockPixel()
+    {
+        var rng = new System.Random(11);
+        var crack = new bool[32, 32];
+        for (int k = 0; k < 9; k++)
+        {
+            int x = rng.Next(32), y = rng.Next(32), len = rng.Next(3, 7), dy = rng.Next(3) - 1;
+            for (int i = 0; i < len; i++) crack[(x + i + 32) % 32, (y + dy * (i / 2) + 32) % 32] = true;
+        }
+        var fleck = new double[32, 32];
+        for (int y = 0; y < 32; y++) for (int x = 0; x < 32; x++) fleck[x, y] = rng.NextDouble();
+        return (x, y) =>
+        {
+            if (crack[x, y]) return Hex("57514A");
+            if (crack[x, (y + 31) % 32]) return Hex("A69E91");
+            float tau = Mathf.PI * 2f / 32f;
+            float v = Mathf.Sin(tau * (2 * x + y) + 0.7f) * 0.55f + Mathf.Sin(tau * (x - 2 * y) + 2.1f) * 0.45f;
+            if (fleck[x, y] < 0.035) return Hex("9E968A");
+            return v > 0.3f ? Hex("958D81") : v < -0.3f ? Hex("776F66") : Hex("867E74");
+        };
+    }
+
+    internal static Texture2D Texture(string name, int size, Func<int, int, Color> pixel)
     {
         string path = Textures + "/" + name + ".png";
         var t = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Repeat };
@@ -120,13 +176,13 @@ public static class CavemanSceneBuilder
         return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
-    static Sprite Sprite(string name, int w, int h, Action<Texture2D> draw)
+    internal static Sprite Sprite(string name, int w, int h, Action<Texture2D> draw, float pixelsPerUnit = 16f)
     {
         string path = Sprites + "/" + name + ".png";
         var t = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
         Fill(t, Hex("00000000")); draw(t); t.Apply(); File.WriteAllBytes(Path.GetFullPath(path), t.EncodeToPNG()); UnityEngine.Object.DestroyImmediate(t);
         AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
-        var importer = (TextureImporter)AssetImporter.GetAtPath(path); importer.textureType = TextureImporterType.Sprite; importer.spriteImportMode = SpriteImportMode.Single; importer.filterMode = FilterMode.Point; importer.textureCompression = TextureImporterCompression.Uncompressed; importer.spritePixelsPerUnit = 16; importer.alphaIsTransparency = true; importer.SaveAndReimport();
+        var importer = (TextureImporter)AssetImporter.GetAtPath(path); importer.textureType = TextureImporterType.Sprite; importer.spriteImportMode = SpriteImportMode.Single; importer.filterMode = FilterMode.Point; importer.textureCompression = TextureImporterCompression.Uncompressed; importer.spritePixelsPerUnit = pixelsPerUnit; importer.alphaIsTransparency = true; importer.SaveAndReimport();
         return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
@@ -135,6 +191,20 @@ public static class CavemanSceneBuilder
         Rect(t, 1, 2, 22, 7, Hex("26352C")); Rect(t, 2, 3, 20, 5, Hex("3B5634")); Rect(t, 4, 4, 5, 3, Hex("668043")); Rect(t, 11, 3, 5, 4, Hex("668043"));
         Polygon(t, Hex("D1BA80"), new Vector2Int(3, 8), new Vector2Int(5, 15), new Vector2Int(7, 8)); Polygon(t, Hex("D1BA80"), new Vector2Int(9, 8), new Vector2Int(12, 16), new Vector2Int(15, 8));
         Polygon(t, Hex("D1BA80"), new Vector2Int(16, 8), new Vector2Int(19, 15), new Vector2Int(22, 8));
+    }
+
+    // A stack of split logs seen end-on: rows of three, two and one
+    static void FirewoodPixels(Texture2D t)
+    {
+        Rect(t, 4, 6, 32, 14, Hex("5A3A24")); Rect(t, 9, 14, 22, 10, Hex("5A3A24"));
+        int[,] ends = { { 3, 0 }, { 14, 0 }, { 25, 0 }, { 8, 9 }, { 19, 9 }, { 14, 18 } };
+        for (int i = 0; i < ends.GetLength(0); i++)
+        {
+            int x = ends[i, 0], y = ends[i, 1];
+            Ellipse(t, x, y, 12, 11, Hex("3F2819")); Ellipse(t, x + 1, y + 1, 10, 9, Hex("C8925A"));
+            Ellipse(t, x + 3, y + 3, 6, 5, Hex("A06C3E")); Ellipse(t, x + 4, y + 4, 4, 3, Hex("D9A86C"));
+            Pixel(t, x + 5, y + 5, Hex("7A4A2A")); Pixel(t, x + 2, y + 7, Hex("E1B47A"));
+        }
     }
 
     static void LogPixels(Texture2D t)
@@ -245,14 +315,14 @@ public static class CavemanSceneBuilder
     }
 
     static void Fill(Texture2D t, Color c) { for (int y = 0; y < t.height; y++) for (int x = 0; x < t.width; x++) t.SetPixel(x, y, c); }
-    static void Pixel(Texture2D t, int x, int y, Color c) { if (x >= 0 && y >= 0 && x < t.width && y < t.height) t.SetPixel(x, y, c); }
-    static void Rect(Texture2D t, int x, int y, int w, int h, Color c) { for (int a = x; a < x + w; a++) for (int b = y; b < y + h; b++) Pixel(t, a, b, c); }
-    static void Ellipse(Texture2D t, int x, int y, int w, int h, Color c)
+    internal static void Pixel(Texture2D t, int x, int y, Color c) { if (x >= 0 && y >= 0 && x < t.width && y < t.height) t.SetPixel(x, y, c); }
+    internal static void Rect(Texture2D t, int x, int y, int w, int h, Color c) { for (int a = x; a < x + w; a++) for (int b = y; b < y + h; b++) Pixel(t, a, b, c); }
+    internal static void Ellipse(Texture2D t, int x, int y, int w, int h, Color c)
     {
         float rx = w * 0.5f, ry = h * 0.5f;
         for (int a = x; a < x + w; a++) for (int b = y; b < y + h; b++) { float dx = (a + 0.5f - x - rx) / rx, dy = (b + 0.5f - y - ry) / ry; if (dx * dx + dy * dy <= 1f) Pixel(t, a, b, c); }
     }
-    static void Polygon(Texture2D t, Color c, params Vector2Int[] p)
+    internal static void Polygon(Texture2D t, Color c, params Vector2Int[] p)
     {
         int minX = p.Min(v => v.x), maxX = p.Max(v => v.x), minY = p.Min(v => v.y), maxY = p.Max(v => v.y);
         for (int y = minY; y <= maxY; y++) for (int x = minX; x <= maxX; x++) { bool inside = false; for (int i = 0, j = p.Length - 1; i < p.Length; j = i++) if ((p[i].y > y) != (p[j].y > y) && x < (p[j].x - p[i].x) * (y - p[i].y) / (float)(p[j].y - p[i].y) + p[i].x) inside = !inside; if (inside) Pixel(t, x, y, c); }
@@ -265,7 +335,7 @@ public static class CavemanSceneBuilder
         var canvas = root.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 5;
         var scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080);
         var label = new GameObject("Inventory Text", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text), typeof(Outline)); label.transform.SetParent(root.transform, false);
-        var rect = label.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = new Vector2(0, 1); rect.pivot = new Vector2(0, 1); rect.anchoredPosition = new Vector2(28, -70); rect.sizeDelta = new Vector2(900, 42);
+        var rect = label.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = new Vector2(0, 1); rect.pivot = new Vector2(0, 1); rect.anchoredPosition = new Vector2(44, -150); rect.sizeDelta = new Vector2(900, 42); // under the HUD clock (which ends at y = -140)
         var text = label.GetComponent<Text>(); text.font = AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/VT323/VT323-Regular.ttf"); text.fontSize = 32; text.color = Hex("E9E8BF"); text.alignment = TextAnchor.MiddleLeft; text.horizontalOverflow = HorizontalWrapMode.Overflow; text.verticalOverflow = VerticalWrapMode.Overflow; text.raycastTarget = false;
         text.text = "WOOD 0   STONE 0   AXE --   MAGNETS 0/3"; var outline = label.GetComponent<Outline>(); outline.effectColor = new Color(0.06f, 0.08f, 0.04f, 0.95f); outline.effectDistance = new Vector2(2, -2);
         root.GetComponent<CavemanInventoryUI>().inventoryText = text; Save(root, Prefabs + "/CavemanInventory.prefab");
@@ -275,7 +345,9 @@ public static class CavemanSceneBuilder
     {
         GameObject root = PrefabUtility.LoadPrefabContents("Assets/prefabs/Medieval/MedievalEssentials.prefab"); root.name = "CavemanEssentials";
         var info = root.GetComponent<LevelInfo>(); if (info == null) throw new InvalidOperationException("MedievalEssentials has no LevelInfo."); info.era = Era.Caveman;
-        Transform player = Find(root.transform, "MedievalPlayer"); if (player != null) player.localPosition = new Vector3(-20, 0.1f, 0);
+        Transform player = Find(root.transform, "MedievalPlayer"); if (player != null) player.localPosition = new Vector3(-19.2f, 0.1f, 0);
+        // Warm, dim light falling in through cracks in the cavern roof; the fires do the rest
+        foreach (var sun in root.GetComponentsInChildren<Light>(true).Where(l => l.type == LightType.Directional)) { sun.color = new Color(1f, 0.87f, 0.72f); sun.intensity = 0.72f; sun.shadows = LightShadows.Hard; }
         var inv = PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Prefabs + "/CavemanInventory.prefab"), root.transform) as GameObject; if (inv != null) inv.name = "CavemanInventory";
         PrefabUtility.SaveAsPrefabAsset(root, Prefabs + "/CavemanEssentials.prefab"); PrefabUtility.UnloadPrefabContents(root);
     }
@@ -284,30 +356,24 @@ public static class CavemanSceneBuilder
 
     static void MakeBreakables()
     {
-        BuildTreePrefab();
+        BuildFirewoodPrefab();
         BuildRockPrefab();
         BreakablePrefab("CaveBramble", CavemanLevel.Resource.Wood, bramble, new Vector3(0, 0.7f, 0), 3, true, true, 0);
         AssetDatabase.DeleteAsset(Prefabs + "/StoneAxeWorkbench.prefab");
     }
 
-    static void BuildTreePrefab()
+    // Wood in the cave comes from the tribe's firewood stacks (there are no trees underground)
+    static void BuildFirewoodPrefab()
     {
-        var root = new GameObject("CavemanTree");
-        var trigger = root.AddComponent<SphereCollider>(); trigger.isTrigger = true; trigger.center = new Vector3(0, 1.8f, 0); trigger.radius = 1.9f;
-        var breakable = root.AddComponent<Breakable>(); breakable.resource = CavemanLevel.Resource.Wood; breakable.amount = 1; breakable.health = 3; breakable.destructionStyle = Breakable.DestructionStyle.Fall;
-        var visual = Group("Visual", root.transform); breakable.visual = visual;
-        Primitive(PrimitiveType.Cylinder, "Trunk", visual, new Vector3(0, 1.45f, 0), new Vector3(0.48f, 1.45f, 0.48f), barkMat);
-        Primitive(PrimitiveType.Cylinder, "West Branch", visual, new Vector3(-0.37f, 2.12f, 0), new Vector3(0.19f, 0.72f, 0.19f), barkMat).transform.localRotation = Quaternion.Euler(0, 0, -42);
-        Primitive(PrimitiveType.Cylinder, "East Branch", visual, new Vector3(0.38f, 2.25f, 0.08f), new Vector3(0.17f, 0.64f, 0.17f), barkMat).transform.localRotation = Quaternion.Euler(0, 0, 38);
-        Primitive(PrimitiveType.Sphere, "Canopy Lower", visual, new Vector3(0, 2.82f, 0), new Vector3(2.45f, 1.75f, 2.15f), leafMat);
-        Primitive(PrimitiveType.Sphere, "Canopy Crown", visual, new Vector3(-0.12f, 3.55f, 0.06f), new Vector3(1.82f, 1.65f, 1.74f), leafMat);
-        Primitive(PrimitiveType.Sphere, "Canopy West", visual, new Vector3(-0.82f, 2.9f, 0.15f), new Vector3(1.25f, 1.15f, 1.22f), leafMat);
-        Primitive(PrimitiveType.Sphere, "Canopy East", visual, new Vector3(0.83f, 3.03f, -0.16f), new Vector3(1.16f, 1.22f, 1.17f), leafMat);
-        Primitive(PrimitiveType.Cube, "Pixel Leaf Cluster A", visual, new Vector3(-0.58f, 3.66f, -0.45f), new Vector3(0.42f, 0.34f, 0.38f), leafMat);
-        Primitive(PrimitiveType.Cube, "Pixel Leaf Cluster B", visual, new Vector3(0.53f, 2.58f, 0.63f), new Vector3(0.36f, 0.3f, 0.34f), leafMat);
-        var solid = new GameObject("Trunk Collider"); solid.transform.SetParent(root.transform, false);
-        var trunk = solid.AddComponent<BoxCollider>(); trunk.center = new Vector3(0, 1.38f, 0); trunk.size = new Vector3(0.62f, 2.75f, 0.62f);
-        Save(root, Prefabs + "/CavemanTree.prefab");
+        AssetDatabase.DeleteAsset(Prefabs + "/CavemanTree.prefab");
+        var root = new GameObject("CavemanFirewood");
+        var trigger = root.AddComponent<SphereCollider>(); trigger.isTrigger = true; trigger.center = new Vector3(0, 0.7f, 0); trigger.radius = 1.5f;
+        var breakable = root.AddComponent<Breakable>(); breakable.resource = CavemanLevel.Resource.Wood; breakable.amount = 1; breakable.health = 3; breakable.destructionStyle = Breakable.DestructionStyle.Crumble;
+        var prompt = new SerializedObject(breakable); prompt.FindProperty("prompt").stringValue = "Take firewood"; prompt.ApplyModifiedPropertiesWithoutUndo();
+        breakable.visual = Billboard(root.transform, firewoodSprite, new Vector3(0, 0.94f, 0));
+        var solid = new GameObject("Solid Collider"); solid.transform.SetParent(root.transform, false);
+        var box = solid.AddComponent<BoxCollider>(); box.center = new Vector3(0, 0.6f, 0); box.size = new Vector3(2.2f, 1.2f, 0.9f);
+        Save(root, Prefabs + "/CavemanFirewood.prefab");
     }
 
     static void BuildRockPrefab()
@@ -421,28 +487,19 @@ public static class CavemanSceneBuilder
 
     static void MakeLevel()
     {
-        var root = new GameObject("Level"); var forest = Group("1 Forest", root.transform); var camp = Group("2 Camp", root.transform); var workshop = Group("3 Workshop", root.transform);
-        var glen = Group("4 Boar Glen", root.transform); var cave = Group("5 Cave", root.transform); var details = Group("6 Details", root.transform); var bounds = Group("Boundary", root.transform);
-        Place(Prefabs + "/CavemanTree.prefab", forest, new Vector3(-15, 0, -3)); Place(Prefabs + "/CavemanTree.prefab", forest, new Vector3(-13, 0, 3)); Place(Prefabs + "/CavemanTree.prefab", forest, new Vector3(-10, 0, -2));
-        Place(Prefabs + "/CavemanRock.prefab", forest, new Vector3(-11, 0, 2)); Place(Prefabs + "/CavemanRock.prefab", forest, new Vector3(-8, 0, -3)); Place(Prefabs + "/CavemanRock.prefab", forest, new Vector3(-7, 0, 3));
+        var root = new GameObject("Level"); var yard = Group("1 Woodpile Yard", root.transform); var camp = Group("2 Camp", root.transform); var workshop = Group("3 Workshop", root.transform);
+        var glen = Group("4 Boar Glen", root.transform); var cave = Group("5 Cave", root.transform);
+        Place(Prefabs + "/CavemanFirewood.prefab", yard, new Vector3(-13.4f, 0, -2.8f)); Place(Prefabs + "/CavemanFirewood.prefab", yard, new Vector3(-10.6f, 0, 5.4f)); Place(Prefabs + "/CavemanFirewood.prefab", yard, new Vector3(-11f, 0, -4.6f));
+        Place(Prefabs + "/CavemanRock.prefab", yard, new Vector3(-11, 0, 2)); Place(Prefabs + "/CavemanRock.prefab", yard, new Vector3(-8, 0, -3)); Place(Prefabs + "/CavemanRock.prefab", yard, new Vector3(-7, 0, 3));
         Place(Prefabs + "/CavemanTimeMachine.prefab", camp, new Vector3(-21, 0, 0)); Place(Prefabs + "/FlatCraftingStone.prefab", workshop, new Vector3(-3.5f, 0, 0)); Place(Prefabs + "/WildBoar.prefab", glen, new Vector3(3.5f, 0, 0));
         Place(Prefabs + "/CaveBramble.prefab", cave, new Vector3(8.5f, 0, 0)); Place(Prefabs + "/MagneticStone.prefab", cave, new Vector3(14.5f, 0, -2.2f)); Place(Prefabs + "/MagneticStone.prefab", cave, new Vector3(18, 0, 2.4f)); Place(Prefabs + "/MagneticStone.prefab", cave, new Vector3(21.3f, 0, -1.5f));
-        Place(Prefabs + "/CavemanCampfire.prefab", camp, new Vector3(-17.5f, 0, 3.2f));
-        Place(Prefabs + "/CavemanLog.prefab", camp, new Vector3(-19.1f, 0, 4.2f)); Place(Prefabs + "/CavemanLog.prefab", camp, new Vector3(-16.1f, 0, 4.1f));
-        Place(Prefabs + "/ClayPot.prefab", camp, new Vector3(-19.2f, 0, 1.5f)); Place(Prefabs + "/WovenBasket.prefab", camp, new Vector3(-16.2f, 0, 1.8f));
-        Place(Prefabs + "/GatheredHerbs.prefab", forest, new Vector3(-12.2f, 0, 4.2f)); Place(Prefabs + "/GatheredHerbs.prefab", forest, new Vector3(-9.5f, 0, -4.1f));
-        Place(Prefabs + "/CavemanLog.prefab", details, new Vector3(-4.5f, 0, -2.5f)); Place(Prefabs + "/ClayPot.prefab", details, new Vector3(-2.2f, 0, 2.6f));
-        Place(Prefabs + "/WovenBasket.prefab", details, new Vector3(2.2f, 0, -3.1f)); Place(Prefabs + "/CaveGlyph.prefab", cave, new Vector3(12.1f, 1.1f, -4.8f)); Place(Prefabs + "/CaveGlyph.prefab", cave, new Vector3(12.1f, 1.1f, 4.8f));
-        Cube("Pixel Grass Floor", root.transform, new Vector3(0, -0.3f, 0), new Vector3(54, 0.6f, 26), grassMat);
-        Cube("Stone Trail", root.transform, new Vector3(-4.5f, 0.035f, 0), new Vector3(29f, 0.07f, 1.45f), pathMat);
+        Place(Prefabs + "/CaveGlyph.prefab", cave, new Vector3(12.1f, 1.1f, -4.8f)); Place(Prefabs + "/CaveGlyph.prefab", cave, new Vector3(12.1f, 1.1f, 4.8f));
+        Cube("Cave Earth Floor", root.transform, new Vector3(0, -0.3f, 0), new Vector3(54, 0.6f, 26), floorMat);
         Cube("Dark Cave Floor", cave, new Vector3(16, 0.015f, 0), new Vector3(17, 0.08f, 12), caveMat);
-        Cube("Cave North Wall", cave, new Vector3(15, 1.25f, -5.7f), new Vector3(18, 2.5f, 0.8f), caveMat); Cube("Cave South Wall", cave, new Vector3(15, 1.25f, 5.7f), new Vector3(18, 2.5f, 0.8f), caveMat);
-        Cube("Cave Back Wall", cave, new Vector3(23.6f, 1.25f, 0), new Vector3(0.8f, 2.5f, 12), caveMat); Cube("Cave Entrance A", cave, new Vector3(11.7f, 1.25f, -3.2f), new Vector3(0.8f, 2.5f, 5.6f), caveMat); Cube("Cave Entrance B", cave, new Vector3(11.7f, 1.25f, 3.2f), new Vector3(0.8f, 2.5f, 5.6f), caveMat);
-        Cube("Carved Cave Lintel", cave, new Vector3(11.7f, 2.65f, 0), new Vector3(0.95f, 0.75f, 6.4f), caveMat);
-        Bump(cave, new Vector3(14, 0.35f, 2.7f), new Vector3(1.8f, 0.7f, 1.2f)); Bump(cave, new Vector3(19.2f, 0.4f, -4), new Vector3(2, 0.8f, 1.4f));
-        Bump(cave, new Vector3(21.5f, 0.3f, 3.7f), new Vector3(1.35f, 0.6f, 1.5f)); Bump(forest, new Vector3(-17.4f, 0.32f, 2.5f), new Vector3(0.8f, 0.55f, 0.9f));
-        Cube("North Boundary", bounds, new Vector3(0, 1, 13.2f), new Vector3(56, 2, 0.8f), stoneMat); Cube("South Boundary", bounds, new Vector3(0, 1, -13.2f), new Vector3(56, 2, 0.8f), stoneMat);
-        Cube("East Boundary", bounds, new Vector3(27.5f, 1, 0), new Vector3(0.8f, 2, 27), stoneMat); Cube("West Boundary", bounds, new Vector3(-27.5f, 1, 0), new Vector3(0.8f, 2, 27), stoneMat);
+        // Mountains, the cave mountain, and per-rock variation (also resizes the floor and fits the bramble to the entrance)
+        CavemanNature.Apply(root.transform);
+        // The tribe's settlement: paths, bonfire, villagers, pillars, torches, paintings on the cavern wall
+        CavemanSettlement.Apply(root.transform);
         Save(root, Prefabs + "/CavemanLevel.prefab");
     }
 

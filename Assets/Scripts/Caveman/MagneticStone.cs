@@ -36,7 +36,12 @@ public class MagneticStone : MonoBehaviour
             return;
 
         collected = true;
+        Vector3 at = visual != null ? visual.position : transform.position;
+        CavemanFx.Play(CavemanSfx.Sound.Crystal);
+        CavemanFx.Shake(0.2f);
+        CavemanFx.Debris(at, CavemanFx.MaterialsOf(this), 8, 0.07f, 2f);
         level.CollectMagneticStone();
+        CavemanFx.Text(at + Vector3.up * 0.8f, $"Magnet {level.MagneticStones}/{level.magneticStonesNeeded}", new Color(0.6f, 0.9f, 1f));
         Destroy(gameObject);
     }
 }

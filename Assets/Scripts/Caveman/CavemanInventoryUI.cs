@@ -4,6 +4,11 @@ using UnityEngine.UI;
 public class CavemanInventoryUI : MonoBehaviour
 {
     public Text inventoryText;
+    public float popScale = 1.25f;
+    public float popTime = 0.25f;
+
+    float popLeft;
+    string lastText;
 
     void OnEnable()
     {
@@ -14,6 +19,8 @@ public class CavemanInventoryUI : MonoBehaviour
     void OnDisable()
     {
         CavemanLevel.InventoryChanged -= Refresh;
+        if (inventoryText != null)
+            inventoryText.rectTransform.localScale = Vector3.one;
     }
 
     void Refresh()
@@ -23,6 +30,21 @@ public class CavemanInventoryUI : MonoBehaviour
             return;
 
         string axe = level.HasAxe ? "READY" : "--";
-        inventoryText.text = $"WOOD {level.Wood}   STONE {level.Stone}   AXE {axe}   MAGNETS {level.MagneticStones}/{level.magneticStonesNeeded}";
+        string text = $"WOOD {level.Wood}   STONE {level.Stone}   AXE {axe}   MAGNETS {level.MagneticStones}/{level.magneticStonesNeeded}";
+
+        // Pop when something actually changed (not on the first fill)
+        if (lastText != null && text != lastText)
+            popLeft = popTime;
+        lastText = text;
+        inventoryText.text = text;
+    }
+
+    void Update()
+    {
+        if (inventoryText == null || popLeft <= 0f)
+            return;
+        popLeft = Mathf.Max(0f, popLeft - Time.deltaTime);
+        float t = popLeft / popTime;
+        inventoryText.rectTransform.localScale = Vector3.one * Mathf.Lerp(1f, popScale, t * t);
     }
 }
