@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6754530760674776471
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8630464851974608063}
+  - component: {fileID: 4483718981428650069}
+  m_Layer: 0
+  m_Name: LevelBorder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8630464851974608063
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6754530760674776471}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4483718981428650069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6754530760674776471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38cceb2bebfaa4d098c4119704178b1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelBorder
+  floor: {fileID: 0}
+  wallThickness: 3
+  wallHeight: 1
+  wallTiles:
+  - {fileID: 11400000, guid: fd0f63b06354f4513bf7700b299b2333, type: 2}
+  - {fileID: 11400000, guid: ae7c98b6f3a25426ab4c53bb7a431161, type: 2}
+  - {fileID: 11400000, guid: b26587a83a6804d20bc559e130658474, type: 2}
+  - {fileID: 11400000, guid: 225dd15ed426749b7850cf8e5d95c94c, type: 2}
+  - {fileID: 11400000, guid: d68324482f0124817ae43b781207fa02, type: 2}
+  - {fileID: 11400000, guid: d182b2e45a996400eac9826f05c897f4, type: 2}
+  wallTopMaterial: {fileID: 2100000, guid: d7e5e90a005b34618b7c3643826ae79b, type: 2}
+  wallSideMaterial: {fileID: 2100000, guid: 8f68d71c1ba5444fd871d8ff8c30abb3, type: 2}
+  outsideMargin: 25
+  outsideTiles:
+  - {fileID: 11400000, guid: fd0f63b06354f4513bf7700b299b2333, type: 2}
+  - {fileID: 11400000, guid: ae7c98b6f3a25426ab4c53bb7a431161, type: 2}
+  - {fileID: 11400000, guid: b26587a83a6804d20bc559e130658474, type: 2}
+  - {fileID: 11400000, guid: 225dd15ed426749b7850cf8e5d95c94c, type: 2}
+  - {fileID: 11400000, guid: d68324482f0124817ae43b781207fa02, type: 2}
+  - {fileID: 11400000, guid: d182b2e45a996400eac9826f05c897f4, type: 2}
+  outsideMaterial: {fileID: 2100000, guid: 10541fd2c3a3e40f88536922d83abc10, type: 2}
+  seed: 1
