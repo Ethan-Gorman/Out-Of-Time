@@ -231,10 +231,9 @@ public class OccluderFader : MonoBehaviour
     // Uses the sprite's own transform, so it follows the Billboard's tilt. Falls back to the colliders
     bool TryGetHead(out Vector3 head, out Vector3 side)
     {
-        foreach (var sr in target.GetComponentsInChildren<SpriteRenderer>())
+        var sr = FindPlayerSprite();
+        if (sr != null && sr.sprite != null)
         {
-            if (!sr.enabled || sr.sprite == null)
-                continue;
             Bounds local = sr.sprite.bounds;
             float y = local.max.y - local.size.y * headInset;
             head = sr.transform.TransformPoint(new Vector3(local.center.x, y, 0f));
@@ -254,6 +253,30 @@ public class OccluderFader : MonoBehaviour
 
         head = side = default;
         return false;
+    }
+
+    // The player's character sprite: the one on the Billboard. Read even while it is switched off
+    // (PlayerDamage blinks it after a hit), so the sight lines don't jump around during the blink.
+    // Cached, and found again if the target changes
+    SpriteRenderer playerSprite;
+    Transform playerSpriteOwner;
+
+    SpriteRenderer FindPlayerSprite()
+    {
+        if (playerSprite != null && playerSpriteOwner == target)
+            return playerSprite;
+
+        playerSprite = null;
+        playerSpriteOwner = target;
+        foreach (var candidate in target.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (candidate.GetComponent<Billboard>() != null)
+                return playerSprite = candidate;
+            // Otherwise the first sprite that isn't a ground shadow
+            if (playerSprite == null && candidate.GetComponent<GroundShadow>() == null)
+                playerSprite = candidate;
+        }
+        return playerSprite;
     }
 
     // ---------------------------------------------------------------- shader state
