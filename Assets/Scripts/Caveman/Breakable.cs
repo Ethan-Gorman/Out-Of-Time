@@ -59,6 +59,7 @@ public class Breakable : Interactable
 
         if (requireBoarKilled && CavemanLevel.Instance != null && !CavemanLevel.Instance.BoarKilled)
         {
+            CavemanFx.Play(CavemanSfx.Sound.Deny);
             if (MedievalUI.Instance != null)
                 MedievalUI.Instance.Say(needBoarLines);
             return;
@@ -67,6 +68,8 @@ public class Breakable : Interactable
         int damage = HasAxe ? axeDamage : (requireAxe ? 0 : handDamage);
         if (damage <= 0)
         {
+            CavemanFx.Play(CavemanSfx.Sound.Deny);
+            shakeLeft = shakeTime * 0.5f;
             if (MedievalUI.Instance != null)
                 MedievalUI.Instance.Say(needAxeLines);
             return;
@@ -74,6 +77,7 @@ public class Breakable : Interactable
 
         shakeLeft = shakeTime;
         health -= damage;
+        HitFeedback(health <= 0);
         if (health > 0)
             return;
 
@@ -91,6 +95,28 @@ public class Breakable : Interactable
             return;
         }
     }
+
+    // Sound, chips and a little shake on every hit; a bigger burst and "+1 Wood" when it breaks
+    void HitFeedback(bool breaking)
+    {
+        bool wood = resource == CavemanLevel.Resource.Wood;
+        CavemanFx.Play(wood ? CavemanSfx.Sound.Chop : CavemanSfx.Sound.Stone);
+
+        if (materials == null)
+            materials = CavemanFx.MaterialsOf(visual != null ? visual : transform);
+        Vector3 center = transform.position + Vector3.up * 0.6f;
+        CavemanFx.Debris(center, materials, breaking ? 10 : 3, breaking ? 0.16f : 0.1f, breaking ? 3.5f : 2.5f);
+        CavemanFx.Shake(breaking ? 0.35f : (HasAxe ? 0.22f : 0.14f));
+
+        if (breaking && amount > 0)
+        {
+            CavemanFx.Play(CavemanSfx.Sound.Pickup, 0.8f);
+            CavemanFx.Text(center + Vector3.up * 0.6f, $"+{amount} {(wood ? "Wood" : "Stone")}",
+                wood ? new Color(0.95f, 0.75f, 0.45f) : new Color(0.85f, 0.88f, 0.92f));
+        }
+    }
+
+    Material[] materials;
 
     void Update()
     {

@@ -59,7 +59,11 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
         InventoryChanged = null;
     }
 
-    void Awake() => Instance = this;
+    void Awake()
+    {
+        Instance = this;
+        CavemanFx.Ensure();
+    }
 
     void OnDestroy()
     {

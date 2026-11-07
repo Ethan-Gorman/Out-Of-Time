@@ -104,6 +104,8 @@ MonoBehaviour:
   health: 3
   axeDamage: 1
   hitPause: 0.35
+  knockbackSpeed: 5
+  flashTime: 0.18
   visual: {fileID: 4757922773523684921}
   sprite: {fileID: 7271679302396363239}
   walkFrames:
