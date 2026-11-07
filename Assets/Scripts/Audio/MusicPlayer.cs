@@ -29,9 +29,6 @@ public class MusicPlayer : MonoBehaviour
     [Tooltip("Seconds to fade out the old era and fade in the new one")]
     public float fadeTime = 0.5f;
 
-    [Tooltip("Roughly how many seconds the drums/muffle/reverb take to follow the player stopping or moving")]
-    public float freezeFadeTime = 1.5f;
-
     [Tooltip("Low-pass cutoff when the world is frozen. Lower = more muffled")]
     public float frozenCutoff = 800f;
     public float openCutoff = 22000f;
@@ -52,9 +49,6 @@ public class MusicPlayer : MonoBehaviour
     // 0..1 multiplier used for fading between eras
     float eraFade;
 
-    // World time scale, smoothed more slowly than WorldTime itself so the music eases in and out
-    float smoothedScale = 1f;
-    float smoothVelocity;
     Coroutine switching;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -157,10 +151,9 @@ public class MusicPlayer : MonoBehaviour
         if (musicFilter == null || musicReverb == null)
             FindFilters();
 
-        // Unscaled time: the music must keep easing even when the world is frozen
-        smoothedScale = Mathf.SmoothDamp(smoothedScale, Mathf.Clamp01(WorldTime.Scale), ref smoothVelocity,
-            freezeFadeTime, Mathf.Infinity, Time.unscaledDeltaTime);
-        float s = Mathf.Clamp01(smoothedScale);
+        // Follows world time 1:1 (which follows the player's speed, already eased by their acceleration),
+        // so the music slows down and speeds up in step with the player
+        float s = Mathf.Clamp01(WorldTime.Scale);
 
         musicSource.volume = volume * eraFade;
 
@@ -168,7 +161,7 @@ public class MusicPlayer : MonoBehaviour
         float boost = Mathf.Lerp(1f, sprintDrumBoost, WorldTime.Sprint);
 
         // Drums disappear as the world stops
-        drumsSource.volume = volume * eraFade * boost * Mathf.SmoothStep(0f, 1f, s);
+        drumsSource.volume = volume * eraFade * boost * s;
 
         // Exponential sweep sounds even to the ear: 800 Hz when frozen, fully open when moving
         float cutoff = frozenCutoff * Mathf.Pow(openCutoff / frozenCutoff, s);
