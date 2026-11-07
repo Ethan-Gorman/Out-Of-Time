@@ -10,7 +10,6 @@ public class SpriteShadowCaster : MonoBehaviour
 {
     public Material shadowMaterial;
 
-    [Tooltip("The sun. Found automatically (the first directional light) if left empty")]
     public Light sun;
 
     static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");

@@ -8,22 +8,17 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerDamage : MonoBehaviour
 {
-    [Tooltip("Seconds taken off the clock per hit")]
     public float secondsPerHit = 10f;
 
-    [Tooltip("Seconds of invulnerability after a hit, so one touch doesn't drain everything")]
     public float invulnerableTime = 1f;
 
     [Header("Knockback")]
     public float knockbackSpeed = 7f;
     public float knockbackUpSpeed = 3f;
-    [Tooltip("Seconds the player can't steer after a hit")]
     public float knockbackTime = 0.2f;
 
-    [Tooltip("Blinks while invulnerable. Found on the 'Sprite' child if left empty")]
     public SpriteRenderer sprite;
 
-    [Tooltip("Extra abilities to switch off when time runs out, e.g. an era's jump or interact. Movement is handled by Clock")]
     public Behaviour[] disableOnOutOfTime;
 
     public bool IsInvulnerable => Time.time < invulnerableUntil;

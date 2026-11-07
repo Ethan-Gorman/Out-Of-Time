@@ -1,6 +1,10 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 // Tracks the current era and handles all scene loading.
 // Part of the Persistent prefab (nested in LevelEssentials). It survives scene loads,
@@ -12,9 +16,16 @@ public class LevelManager : MonoBehaviour
     // Fired when a scene with a different era loads (not when the same era restarts)
     public static event Action<Era> EraChanged;
 
+    // Real seconds the finished level's results stay on screen before the next level loads
+    public float resultsTime = 3f;
+
     public Era CurrentEra { get; private set; }
 
+    // True once this level's objective is complete (FinishLevel). Resets when a scene loads
+    public bool LevelFinished { get; private set; }
+
     bool hasEra;
+    bool loadingNext;
 
     // Statics survive between play sessions when domain reload is off, so reset on play
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -46,6 +57,7 @@ public class LevelManager : MonoBehaviour
     {
         // Covers the first scene, in case sceneLoaded fired before we subscribed
         RefreshEra();
+        RunTimer.EnterLevel(SceneManager.GetActiveScene().name);
     }
 
     void OnDestroy()
@@ -56,7 +68,10 @@ public class LevelManager : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        LevelFinished = false;
+        loadingNext = false;
         RefreshEra();
+        RunTimer.EnterLevel(scene.name);
     }
 
     // Finds the scene's LevelInfo and announces the era if it changed.
@@ -78,20 +93,71 @@ public class LevelManager : MonoBehaviour
         EraChanged?.Invoke(CurrentEra);
     }
 
-    // Reloads the current scene. Called by Clock when time runs out
+    // Reloads the current scene. Called by Clock when time runs out.
+    // Also works in the Editor for scenes not in Build Settings yet
     public void RestartLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        var scene = SceneManager.GetActiveScene();
+        if (scene.buildIndex >= 0)
+        {
+            SceneManager.LoadScene(scene.buildIndex);
+            return;
+        }
+
+#if UNITY_EDITOR
+        EditorSceneManager.LoadSceneInPlayMode(scene.path, new LoadSceneParameters(LoadSceneMode.Single));
+#else
+        SceneManager.LoadScene(scene.name);
+#endif
     }
 
-    // Loads the next scene in Build Settings, so era scenes must be listed in play order.
-    // Not hooked up yet: call this from whatever ends a level
+    // The level's objective is complete: freezes the Clock and records the level's time (RunTimer).
+    // The last level in Build Settings (or a scene not in Build Settings yet) also ends the run.
+    // Safe to call more than once. CompleteLevel calls it too
+    public void FinishLevel()
+    {
+        if (LevelFinished)
+            return;
+        LevelFinished = true;
+
+        float clockLeft = 0f;
+        if (Clock.Instance != null)
+        {
+            Clock.Instance.Freeze();
+            clockLeft = Clock.Instance.Remaining;
+        }
+
+        RunTimer.FinishLevel(clockLeft, !HasNextLevel());
+    }
+
+    // Finishes the level, shows its results for resultsTime, then loads the next scene in Build Settings,
+    // so era scenes must be listed in play order
     public void CompleteLevel()
     {
-        int next = SceneManager.GetActiveScene().buildIndex + 1;
-        if (next < SceneManager.sceneCountInBuildSettings)
-            SceneManager.LoadScene(next);
-        else
-            Debug.Log("[LevelManager] Final era complete.");
+        FinishLevel();
+        if (!HasNextLevel())
+        {
+            Debug.Log($"[LevelManager] Final era complete. Run time {RunTimer.Format(RunTimer.RunSeconds)}");
+            return;
+        }
+
+        if (!loadingNext)
+        {
+            loadingNext = true;
+            StartCoroutine(LoadNextLevel(SceneManager.GetActiveScene().buildIndex + 1));
+        }
+    }
+
+    IEnumerator LoadNextLevel(int index)
+    {
+        // Realtime, so it doesn't depend on the world moving
+        yield return new WaitForSecondsRealtime(resultsTime);
+        SceneManager.LoadScene(index);
+    }
+
+    static bool HasNextLevel()
+    {
+        int index = SceneManager.GetActiveScene().buildIndex;
+        return index >= 0 && index + 1 < SceneManager.sceneCountInBuildSettings;
     }
 }

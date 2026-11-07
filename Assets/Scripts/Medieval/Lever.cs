@@ -6,7 +6,6 @@ public class Lever : Interactable
 {
     public Gate gate;
 
-    [Tooltip("The part that tips over when pulled. Optional, art only.")]
     public Transform handle;
     public float offAngle = 40f;
     public float onAngle = -40f;
@@ -14,7 +13,6 @@ public class Lever : Interactable
 
     [TextArea] public string[] pulledLines = { "Something heavy just moved... the gate is opening!" };
 
-    [Tooltip("Extra reactions: sounds, camera shake, other doors.")]
     public UnityEvent onPulled;
 
     public bool IsPulled { get; private set; }

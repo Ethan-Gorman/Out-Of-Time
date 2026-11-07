@@ -12,7 +12,6 @@ public class MedievalLevel : MonoBehaviour
 {
     public static MedievalLevel Instance { get; private set; }
 
-    [Tooltip("Real seconds before the intro dialogue starts.")]
     public float introDelay = 0.6f;
 
     [TextArea] public string[] introLines =

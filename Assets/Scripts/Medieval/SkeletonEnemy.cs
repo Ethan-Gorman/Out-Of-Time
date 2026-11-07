@@ -14,19 +14,13 @@ public class SkeletonEnemy : MonoBehaviour
 
     [Header("Chase")]
     public float chaseSpeed = 3.2f;
-    [Tooltip("Starts chasing when the player is this close.")]
     public float aggroRadius = 6f;
-    [Tooltip("Never chases further than this from the middle of its patrol.")]
     public float leashRadius = 9f;
 
     [Header("Combat")]
-    [Tooltip("Seconds taken off the clock on touch. Below 0 = the player's default (PlayerDamage.secondsPerHit)")]
     public float contactTimeCost = -1f;
-    [Tooltip("The player's feet must be this far above the skeleton's feet to count as a stomp.")]
     public float stompHeight = 0.7f;
-    [Tooltip("Upward speed given to the player after a stomp.")]
     public float stompBounce = 4.5f;
-    [Tooltip("World-time seconds the skeleton stands still after hitting the player, giving them a chance to get away.")]
     public float pauseAfterHit = 1f;
 
     [Header("Art")]

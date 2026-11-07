@@ -13,7 +13,6 @@ public class EraPalette : MonoBehaviour
 
     public Entry[] palettes;
 
-    [Tooltip("How far colours are pulled towards the palette. 0 = off, 1 = only palette colours")]
     [Range(0f, 1f)] public float strength = 0.35f;
 
     static readonly int PaletteId = Shader.PropertyToID("_OOT_Palette");

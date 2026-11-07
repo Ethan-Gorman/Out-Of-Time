@@ -8,10 +8,8 @@ using UnityEngine;
 // The SpriteRenderer is only used for its sprite, colour, material and sorting; the mesh replaces it.
 public class GroundShadow : MonoBehaviour
 {
-    [Tooltip("How far down to look for ground.")]
     public float maxDistance = 10f;
 
-    [Tooltip("At this height above the ground the shadow is at its smallest and faintest.")]
     public float fadeHeight = 3f;
 
     [Range(0f, 1f)] public float minScale = 0.5f;
@@ -20,7 +18,6 @@ public class GroundShadow : MonoBehaviour
     // Lift above the ground so the shadow doesn't flicker into it
     public float groundOffset = 0.02f;
 
-    [Tooltip("Grid points per side. Higher = smoother over edges, more raycasts")]
     [Range(2, 16)] public int resolution = 8;
 
     public LayerMask groundLayers = ~0;

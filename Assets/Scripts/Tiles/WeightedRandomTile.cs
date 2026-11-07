@@ -14,13 +14,11 @@ public class WeightedRandomTile : TileBase
     {
         public Sprite sprite;
 
-        [Tooltip("Relative chance. 3 is three times as likely as 1")]
         [Min(0)] public int weight;
     }
 
     public Entry[] sprites = Array.Empty<Entry>();
 
-    [Tooltip("Change for a different random pattern")]
     public int seed;
 
     public Tile.ColliderType colliderType = Tile.ColliderType.None;

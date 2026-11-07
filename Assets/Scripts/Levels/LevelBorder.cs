@@ -15,33 +15,25 @@ using UnityEditor;
 [ExecuteAlways]
 public class LevelBorder : MonoBehaviour
 {
-    [Tooltip("The painted floor to wrap. Left empty, it uses the first Tilemap in this scene")]
     public Tilemap floor;
 
     [Header("Wall")]
-    [Tooltip("How many tiles thick the wall is")]
     public int wallThickness = 3;
     public float wallHeight = 1f;
 
-    [Tooltip("Tiles for the top of the wall, picked at random and shown in greyscale. Add a tile more than once to make it more common")]
     public TileBase[] wallTiles;
     public Material wallTopMaterial;
     public Material wallSideMaterial;
 
     [Header("Outside")]
-    [Tooltip("How many tiles of floor to fill beyond the wall")]
     public int outsideMargin = 25;
 
-    [Tooltip("Tiles for the floor outside the wall, picked at random, greyscale and dimmed")]
     public TileBase[] outsideTiles;
     public Material outsideMaterial;
 
-    [Tooltip("Change for a different random pattern. The same seed always gives the same layout")]
     public int seed = 1;
 
     [Header("Floor")]
-    [Tooltip("Put on the painted floor when the game starts, so walls and props cast visible shadows onto it " +
-             "(Sprite Receive Shadows). Only in Play mode, so the scene file is never changed")]
     public Material floorMaterial;
 
     const string RootName = "LevelBorder (generated)";

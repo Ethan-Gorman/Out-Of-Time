@@ -6,10 +6,8 @@ using UnityEngine;
 // together with the world instead of jiggling a pixel against it.
 public class Billboard : MonoBehaviour
 {
-    [Tooltip("Only rotate around Y so the sprite stays upright. Off = tilt to fully face the camera.")]
     public bool lockUpright = false;
 
-    [Tooltip("Snap the sprite to the camera's pixel grid. Only the art moves; the parent object is untouched")]
     public bool pixelSnap = true;
 
     // Cached so we don't look up Camera.main every frame

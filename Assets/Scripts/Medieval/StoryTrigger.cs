@@ -7,10 +7,8 @@ public class StoryTrigger : MonoBehaviour
 {
     [TextArea] public string[] lines;
 
-    [Tooltip("Leave empty to keep the current objective.")]
     public string objective;
 
-    [Tooltip("Off = never fires after the Time Crystal is collected (for hints only needed on the way in).")]
     public bool fireAfterCrystal = false;
 
     bool fired;

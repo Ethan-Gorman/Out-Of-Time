@@ -19,7 +19,6 @@ public class CameraFollow : MonoBehaviour
     // Roughly how long the camera takes to catch up, in seconds. 0 = locked to the target
     public float smoothTime = 0.15f;
 
-    [Tooltip("Move the camera in steps of one low-res pixel (at the player's distance), so edges and outlines don't shimmer")]
     public bool pixelSnap = true;
 
     // Current camera speed, used internally by SmoothDamp between frames

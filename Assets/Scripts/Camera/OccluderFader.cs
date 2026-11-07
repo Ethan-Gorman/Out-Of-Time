@@ -17,47 +17,31 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class OccluderFader : MonoBehaviour
 {
-    [Tooltip("What to keep visible. Found by the Player tag if left empty")]
     public Transform target;
 
-    [Tooltip("Centre of the hole, this far above the target's feet (roughly the middle of the character)")]
     public float targetHeight = 0.6f;
 
-    [Tooltip("Head-level sight lines are aimed this fraction of the sprite's height below its top")]
     [Range(0f, 0.5f)] public float headInset = 0.15f;
 
-    [Tooltip("Head-level sight lines to the left and right, as a fraction of the sprite's half width. " +
-             "All of them must be blocked before anything is cut, so bigger = only cut when the player is more fully hidden")]
     [Range(0f, 1f)] public float headSpread = 0.6f;
 
     [Header("Hole")]
-    [Tooltip("Hole radius (half its height) as a fraction of screen height")]
     [Range(0.02f, 0.5f)] public float circleRadius = 0.22f;
-    [Tooltip("Width of the dithered soft edge, as a fraction of screen height")]
     [Range(0f, 0.2f)] public float circleSoftness = 0.09f;
-    [Tooltip("How many times wider than tall the hole is. 1 = circle, bigger = wide oval")]
     [Range(1f, 3f)] public float circleWidth = 1.3f;
-    [Tooltip("How much wall is left in the middle of the hole. 0 = fully clear, only the edge is dithered")]
     [Range(0f, 1f)] public float fadedAlpha = 0f;
-    [Tooltip("Faint wash over the hole (alpha = strength in the middle). No dither")]
     public Color tintColor = new Color(0.5f, 0.5f, 0.5f, 0.05f);
-    [Tooltip("Solid colour of a cut wall's footprint on the ground, seen through the hole")]
     public Color capColor = new Color(0.2f, 0.2f, 0.23f, 1f);
-    [Tooltip("Seconds for the hole to open or close")]
     public float fadeTime = 0.15f;
-    [Tooltip("Never cut below this height above the player's feet (the foot of a wall stays solid)")]
     public float minCutHeight = 0.3f;
-    [Tooltip("Height above Min Cut Height over which the hole builds to full strength")]
     public float cutHeightRamp = 0.3f;
 
-    [Tooltip("Only these layers can be cut")]
     public LayerMask layers = ~0;
 
     [Header("Shaders (assigned in the prefab so builds include them)")]
     public Shader cutoutShader;
     public Shader tintShader;
     public Shader capShader;
-    [Tooltip("Materials using the shaders above, only here so builds include them. Don't remove")]
     public Material variantKeeper;
     public Material tintKeeper;
     public Material capKeeper;

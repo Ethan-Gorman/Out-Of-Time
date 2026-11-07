@@ -25,7 +25,6 @@ public class Clock : MonoBehaviour
     // Time on the clock when the level starts
     public float startSeconds = 60f;
 
-    [Tooltip("Minimum drain rate while standing still, as a fraction of real time.")]
     [Range(0f, 1f)] public float idleDrain = 0.1f;
 
     // Seconds to show "OUT OF TIME" before the level restarts
@@ -38,6 +37,9 @@ public class Clock : MonoBehaviour
     public float Remaining { get; private set; }
     public bool IsOut => Remaining <= 0f;
 
+    // True once the level's objective is complete: the clock stops and can't gain or lose time
+    public bool IsFrozen { get; private set; }
+
     void Awake()
     {
         Instance = this;
@@ -46,7 +48,7 @@ public class Clock : MonoBehaviour
 
     void Update()
     {
-        if (IsOut)
+        if (IsOut || IsFrozen)
             return;
 
         // Drain at world speed, but never slower than idleDrain,
@@ -60,7 +62,7 @@ public class Clock : MonoBehaviour
     // Call from pickups and enemy kills
     public void AddTime(float seconds)
     {
-        if (IsOut || seconds <= 0f)
+        if (IsOut || IsFrozen || seconds <= 0f)
             return;
 
         Remaining += seconds;
@@ -70,7 +72,7 @@ public class Clock : MonoBehaviour
     // Call when the player gets hit (PlayerDamage does this)
     public void RemoveTime(float seconds)
     {
-        if (IsOut || seconds <= 0f)
+        if (IsOut || IsFrozen || seconds <= 0f)
             return;
 
         Remaining -= seconds;
@@ -79,9 +81,17 @@ public class Clock : MonoBehaviour
             OutOfTime();
     }
 
+    // Stops the clock for good (until the level reloads). Called by LevelManager.FinishLevel
+    public void Freeze()
+    {
+        if (!IsOut)
+            IsFrozen = true;
+    }
+
     void OutOfTime()
     {
         Remaining = 0f;
+        RunTimer.LevelFailed();
 
         var player = UnityEngine.Object.FindAnyObjectByType<PlayerMovement>();
         if (player != null)

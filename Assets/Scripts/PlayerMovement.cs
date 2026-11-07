@@ -24,8 +24,6 @@ public class PlayerMovement : MonoBehaviour
     // The Animator on the same "Sprite" child, using AcPlayer (Stand / Run / Dead)
     public Animator animator;
 
-    [Tooltip("The player's animation slows down with world time, but never below this speed. " +
-             "0.15 = standing still plays the idle at 15%. 1 = never slows")]
     [Range(0f, 1f)] public float slowestAnimationSpeed = 0.15f;
 
     Rigidbody body;

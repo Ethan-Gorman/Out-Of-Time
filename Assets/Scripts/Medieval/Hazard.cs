@@ -5,10 +5,8 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class Hazard : MonoBehaviour
 {
-    [Tooltip("Seconds taken off the clock. Below 0 = the player's default (PlayerDamage.secondsPerHit)")]
     public float timeCost = -1f;
 
-    [Tooltip("Off = harmless. SpikeTrap turns this on and off as the spikes rise and sink.")]
     public bool armed = true;
 
     void Reset()

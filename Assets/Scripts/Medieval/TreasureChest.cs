@@ -4,12 +4,10 @@ using UnityEngine.Events;
 // An optional chest. Opening it adds time to the clock. Works once.
 public class TreasureChest : Interactable
 {
-    [Tooltip("The lid, tipped open when used. Optional, art only.")]
     public Transform lid;
     public float openAngle = -110f;
     public float openTime = 0.35f;
 
-    [Tooltip("Seconds added to the clock")]
     public float timeBonus = 15f;
 
     [TextArea] public string[] openedLines = { "A healing potion! I feel much better." };

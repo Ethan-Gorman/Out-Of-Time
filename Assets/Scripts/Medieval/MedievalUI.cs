@@ -20,7 +20,6 @@ public class MedievalUI : MonoBehaviour
     [Header("Dialogue (bottom)")]
     public GameObject dialogueRoot;
     public Text dialogueText;
-    [Tooltip("Base seconds each dialogue line stays up, plus secondsPerCharacter for its length.")]
     public float secondsPerLine = 1.8f;
     public float secondsPerCharacter = 0.035f;
 

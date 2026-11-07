@@ -5,10 +5,8 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerMovement))]
 public class TimeController : MonoBehaviour
 {
-    [Tooltip("World speed while standing still. Above 0 so the world never fully stops.")]
     [Range(0f, 1f)] public float minScale = 0.05f;
 
-    [Tooltip("How much faster the clock drains while sprinting")]
     public float sprintTimeCost = 2f;
 
     PlayerMovement player;

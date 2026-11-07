@@ -15,29 +15,20 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class MedievalJump : MonoBehaviour
 {
-    [Tooltip("Peak height of a jump, in world units.")]
     public float jumpHeight = 1.6f;
 
-    [Tooltip("Seconds from take-off back down to the starting height.")]
     public float jumpDuration = 0.7f;
 
-    [Tooltip("Height over time, both 0..1. Edit the shape in the Inspector: the peak's position sets how much of the jump is rising.")]
     public AnimationCurve heightCurve = DefaultCurve();
 
-    [Tooltip("Downward acceleration while falling past the end of the jump curve (jumping or walking off something " +
-             "taller), in units/s². 0 = keep the curve's own acceleration, so the fall carries on speeding up smoothly")]
     public float fallAcceleration = 0f;
 
-    [Tooltip("Fastest the player can fall, in units/s")]
     public float maxFallSpeed = 20f;
 
-    [Tooltip("Seconds after walking off a ledge where a jump still counts.")]
     public float coyoteTime = 0.1f;
 
-    [Tooltip("Seconds a Jump press is remembered before landing, so early presses aren't lost.")]
     public float jumpBuffer = 0.12f;
 
-    [Tooltip("What counts as ground. Leave as Everything unless you add layers.")]
     public LayerMask groundLayers = ~0;
 
     // True while standing on something. Read by GroundShadow and anything else that cares

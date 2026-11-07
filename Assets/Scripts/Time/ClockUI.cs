@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 // Shows the Clock in the top-left corner, with the world time multiplier next to it (e.g. ×0.42).
 // Turns red and pulses when time is low. Flashes and pops up "-10s" / "+15s" when time is taken or given.
+// When the level's objective is complete the clock turns gold and the level and run times (RunTimer) appear under it.
 // Sits on the "Clock" text object inside the HUD canvas.
 [RequireComponent(typeof(Text))]
 public class ClockUI : MonoBehaviour
@@ -22,13 +23,15 @@ public class ClockUI : MonoBehaviour
     [Header("Time taken / given")]
     public Color lossColor = new Color(1f, 0.15f, 0.15f);
     public Color gainColor = new Color(0.4f, 1f, 0.5f);
-    [Tooltip("Seconds the clock flashes for")]
     public float flashTime = 0.5f;
-    [Tooltip("Seconds the -10s / +15s popup lasts")]
     public float popupTime = 0.9f;
-    [Tooltip("Pixels the popup drifts (down for a loss, up for a gain)")]
     public float popupDrift = 60f;
     [Range(0.2f, 1f)] public float popupSize = 0.7f;
+
+    [Header("Level finished")]
+    public Color finishedColor = new Color(1f, 0.82f, 0.3f);
+    public Color newBestColor = new Color(0.4f, 1f, 0.5f);
+    [Range(0.2f, 1f)] public float resultsSize = 0.45f;
 
     class Popup
     {
@@ -43,6 +46,7 @@ public class ClockUI : MonoBehaviour
     Text label;
     float flash;
     Color flashColor;
+    Text results;
 
     void Awake()
     {
@@ -83,9 +87,17 @@ public class ClockUI : MonoBehaviour
 
         // Format as m:ss.ss, e.g. 0:09.42
         float t = clock.Remaining;
-        int minutes = (int)(t / 60f);
-        float seconds = t % 60f; // 0-59.999
-        label.text = $"{minutes}:{seconds:00.00}  {Multiplier()}";
+
+        if (clock.IsFrozen)
+        {
+            label.text = RunTimer.Format(t);
+            label.color = Color.Lerp(finishedColor, flashColor, flash);
+            transform.localScale = Vector3.one;
+            ShowResults();
+            return;
+        }
+
+        label.text = $"{RunTimer.Format(t)}  {Multiplier()}";
 
         bool low = t <= warningSeconds;
         label.color = Color.Lerp(low ? warningColor : normalColor, flashColor, flash);
@@ -109,36 +121,67 @@ public class ClockUI : MonoBehaviour
         return $"<size={size}><color=#{ColorUtility.ToHtmlStringRGBA(c)}>×{scale:0.00}</color></size>";
     }
 
-    // A "-10s" / "+15s" text just under the clock, built at runtime so the HUD prefab needs nothing extra
-    void SpawnPopup(float delta)
+    // Level (and run, if it's over) times under the clock, with bests. Built once, at runtime
+    void ShowResults()
+    {
+        var level = RunTimer.LastLevel;
+        if (level == null || results != null)
+            return;
+
+        results = MakeText("Results", resultsSize, -label.fontSize * 1.1f);
+        results.fontStyle = FontStyle.Normal;
+        results.verticalOverflow = VerticalWrapMode.Overflow;
+        results.color = Color.white;
+
+        string best = ColorUtility.ToHtmlStringRGBA(newBestColor);
+        string text = $"LEVEL  {RunTimer.Format(level.seconds)}" +
+            (level.newBest ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(level.bestSeconds)})");
+        if (level.deaths > 0)
+            text += $"\n{level.deaths} {(level.deaths == 1 ? "retry" : "retries")}";
+        if (RunTimer.Complete)
+            text += $"\nRUN  {RunTimer.Format(RunTimer.RunSeconds)}" +
+                (RunTimer.NewBestRun ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(RunTimer.BestRunSeconds)})");
+        results.text = text;
+    }
+
+    // A text matching the clock's font and anchoring, offset down by yOffset pixels
+    Text MakeText(string name, float size, float yOffset)
     {
         var own = (RectTransform)transform;
-        var go = new GameObject("Time Popup", typeof(RectTransform), typeof(Text), typeof(Outline));
+        var go = new GameObject(name, typeof(RectTransform), typeof(Text), typeof(Outline));
         var rect = (RectTransform)go.transform;
         rect.SetParent(own.parent, false);
         rect.anchorMin = own.anchorMin;
         rect.anchorMax = own.anchorMax;
         rect.pivot = own.pivot;
         rect.sizeDelta = own.sizeDelta;
-
-        // Losses start under the clock and sink; gains start lower and rise towards it
-        float lineHeight = label.fontSize * 1.1f;
-        Vector2 start = own.anchoredPosition + new Vector2(0f, delta < 0f ? -lineHeight : -lineHeight * 1.6f);
-        rect.anchoredPosition = start;
+        rect.anchoredPosition = own.anchoredPosition + new Vector2(0f, yOffset);
 
         var text = go.GetComponent<Text>();
         text.font = label.font;
         text.fontStyle = FontStyle.Bold;
-        text.fontSize = Mathf.RoundToInt(label.fontSize * popupSize);
+        text.fontSize = Mathf.RoundToInt(label.fontSize * size);
         text.alignment = label.alignment;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        text.supportRichText = true;
         text.raycastTarget = false;
-        text.text = delta < 0f ? $"-{-delta:0.#}s" : $"+{delta:0.#}s";
-        text.color = delta < 0f ? lossColor : gainColor;
 
         var outline = go.GetComponent<Outline>();
         outline.effectColor = Color.black;
         outline.effectDistance = new Vector2(3f, -3f);
+        return text;
+    }
+
+    // A "-10s" / "+15s" text just under the clock, built at runtime so the HUD prefab needs nothing extra
+    void SpawnPopup(float delta)
+    {
+        // Losses start under the clock and sink; gains start lower and rise towards it
+        float lineHeight = label.fontSize * 1.1f;
+        var text = MakeText("Time Popup", popupSize, delta < 0f ? -lineHeight : -lineHeight * 1.6f);
+        var rect = (RectTransform)text.transform;
+        Vector2 start = rect.anchoredPosition;
+        text.text = delta < 0f ? $"-{-delta:0.#}s" : $"+{delta:0.#}s";
+        text.color = delta < 0f ? lossColor : gainColor;
 
         popups.Add(new Popup { rect = rect, text = text, start = start, direction = delta < 0f ? -1f : 1f });
     }

@@ -26,20 +26,15 @@ public class MusicPlayer : MonoBehaviour
 
     [Range(0f, 1f)] public float volume = 0.8f;
 
-    [Tooltip("Seconds to fade out the old era and fade in the new one")]
     public float fadeTime = 0.5f;
 
-    [Tooltip("Low-pass cutoff when the world is frozen. Lower = more muffled")]
     public float frozenCutoff = 800f;
     public float openCutoff = 22000f;
 
-    [Tooltip("Reverb level when frozen, in millibels. -10000 = none, 0 = full")]
     [Range(-10000f, 0f)] public float frozenReverb = -1200f;
 
-    [Tooltip("Reverb tail length in seconds")]
     public float reverbDecay = 3f;
 
-    [Tooltip("Drums volume multiplier while sprinting. AudioSource volume caps at 1, so at volume 0.8 the most is 1.25 (about +2 dB)")]
     public float sprintDrumBoost = 1.25f;
 
     AudioLowPassFilter musicFilter;

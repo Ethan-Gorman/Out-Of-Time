@@ -10,15 +10,11 @@ public class TimeMachine : Interactable
     public enum State { Broken, Repaired, Boarded }
 
     [Header("Art (swap freely)")]
-    [Tooltip("Shown while broken.")]
     public GameObject brokenVisual;
-    [Tooltip("Shown once repaired.")]
     public GameObject repairedVisual;
-    [Tooltip("Optional glow, switched on when repaired.")]
     public Light glow;
 
     [Header("Travel")]
-    [Tooltip("On: boarding calls LevelManager.CompleteLevel() to load the next scene in Build Settings.")]
     public bool loadNextEra = false;
 
     [TextArea] public string[] brokenLines = { "It's completely dead. I need a Time Crystal to power it." };
@@ -63,6 +59,10 @@ public class TimeMachine : Interactable
 
             case State.Repaired:
                 Current = State.Boarded;
+
+                // Objective complete: freezes the clock and records the level's time
+                if (LevelManager.Instance != null)
+                    LevelManager.Instance.FinishLevel();
                 onBoarded.Invoke();
                 if (loadNextEra && LevelManager.Instance != null)
                     LevelManager.Instance.CompleteLevel();
