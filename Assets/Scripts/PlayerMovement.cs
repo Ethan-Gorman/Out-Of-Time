@@ -35,22 +35,28 @@ public class PlayerMovement : MonoBehaviour
     // Current ground velocity, easing towards the input direction at the acceleration rate
     Vector3 planarVelocity;
 
+    // How fast the player actually moved over the last physics step, along the ground.
+    // Walking into a wall gives ~0 here even though planarVelocity says full speed
+    float measuredSpeed;
+    Vector3 lastPosition;
+
     public Vector2 MoveInput => input;
 
     // Sprint held while actually trying to move: sets the sprint top speed as the target
     public bool IsSprinting { get; private set; }
 
-    // 0 = standing still, 1 = normal top speed (or faster). Read by TimeController to decide how fast the world runs
-    public float SpeedFraction => speed > 0f ? Mathf.Clamp01(planarVelocity.magnitude / speed) : 0f;
+    // 0 = not moving, 1 = normal top speed (or faster). Based on actual movement, not input,
+    // so pushing against a wall counts as standing still. Read by TimeController to decide how fast the world runs
+    public float SpeedFraction => speed > 0f ? Mathf.Clamp01(measuredSpeed / speed) : 0f;
 
-    // 0 = at or below normal top speed, 1 = full sprint speed. Ramps with actual speed,
+    // 0 = at or below normal top speed, 1 = full sprint speed. Also from actual movement,
     // so the extra clock cost, drum boost and animation speed ease in and out with the player
     public float SprintAmount
     {
         get
         {
             float extra = speed * (sprintSpeedMultiplier - 1f);
-            return extra > 0f ? Mathf.Clamp01((planarVelocity.magnitude - speed) / extra) : 0f;
+            return extra > 0f ? Mathf.Clamp01((measuredSpeed - speed) / extra) : 0f;
         }
     }
 
@@ -62,6 +68,29 @@ public class PlayerMovement : MonoBehaviour
         // (WASD, arrow keys and gamepad left stick are all bound to Player/Move)
         move = InputSystem.actions.FindAction("Player/Move");
         sprint = InputSystem.actions.FindAction("Player/Sprint");
+
+        // No friction on the player's colliders: with friction, pushing into a wall grips it,
+        // so you can't slide along it diagonally or jump while touching it.
+        // Movement sets velocity directly, so the player still stops instantly on the ground
+        var slippery = new PhysicsMaterial("Player (no friction)")
+        {
+            dynamicFriction = 0f,
+            staticFriction = 0f,
+            frictionCombine = PhysicsMaterialCombine.Minimum,
+            bounceCombine = PhysicsMaterialCombine.Minimum,
+        };
+        foreach (var col in GetComponents<Collider>())
+            if (!col.isTrigger)
+                col.sharedMaterial = slippery;
+    }
+
+    // Re-enabled after a knockback: carry on from the actual velocity instead of the old one
+    void OnEnable()
+    {
+        if (body == null)
+            return;
+        planarVelocity = new Vector3(body.linearVelocity.x, 0f, body.linearVelocity.z);
+        lastPosition = body.position;
     }
 
     void Update()
@@ -94,6 +123,12 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
+        // Measure how far we really moved since the last step, after collisions were resolved
+        Vector3 moved = body.position - lastPosition;
+        moved.y = 0f;
+        measuredSpeed = moved.magnitude / Time.fixedDeltaTime;
+        lastPosition = body.position;
+
         // Map 2D input onto the ground plane: input.x -> world X, input.y -> world Z
         float topSpeed = IsSprinting ? speed * sprintSpeedMultiplier : speed;
         Vector3 target = Vector3.ClampMagnitude(new Vector3(input.x, 0f, input.y), 1f) * topSpeed;

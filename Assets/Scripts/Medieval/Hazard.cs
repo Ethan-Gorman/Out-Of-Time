@@ -1,11 +1,12 @@
 using UnityEngine;
 
-// Hurts the player on touch. Put it on a trigger collider: an axe blade, a bed of spikes.
-// The player's invulnerability after a hit stops it from draining health every frame.
+// Hurts the player on touch: costs clock time via PlayerDamage. Put it on a trigger collider: an axe blade, a bed of spikes.
+// The player's invulnerability after a hit stops it from draining time every frame.
 [RequireComponent(typeof(Collider))]
 public class Hazard : MonoBehaviour
 {
-    public float damage = 25f;
+    [Tooltip("Seconds taken off the clock. Below 0 = the player's default (PlayerDamage.secondsPerHit)")]
+    public float timeCost = -1f;
 
     [Tooltip("Off = harmless. SpikeTrap turns this on and off as the spikes rise and sink.")]
     public bool armed = true;
@@ -23,8 +24,8 @@ public class Hazard : MonoBehaviour
         if (!armed || !isActiveAndEnabled || other.attachedRigidbody == null)
             return;
 
-        var health = other.attachedRigidbody.GetComponent<MedievalHealth>();
-        if (health != null)
-            health.Damage(damage, transform.position);
+        var player = other.attachedRigidbody.GetComponent<PlayerDamage>();
+        if (player != null)
+            player.Hit(transform.position, timeCost);
     }
 }

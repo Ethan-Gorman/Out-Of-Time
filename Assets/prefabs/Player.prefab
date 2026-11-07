@@ -142,6 +142,7 @@ GameObject:
   - component: {fileID: 279983819844857556}
   - component: {fileID: 8087164132133084463}
   - component: {fileID: 3348484813960707367}
+  - component: {fileID: 8157789729885368215}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -228,6 +229,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   speed: 5
+  accelerationTime: 0.1
+  sprintSpeedMultiplier: 1.5
   sprite: {fileID: 362980460145294172}
   animator: {fileID: 1469588306487102412}
 --- !u!114 &3348484813960707367
@@ -243,4 +246,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeController
   minScale: 0.05
-  responsiveness: 10
+  sprintTimeCost: 2
+--- !u!114 &8157789729885368215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8731023776067835695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78e4e688e49c44caba02a8d87548c594, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDamage
+  secondsPerHit: 10
+  invulnerableTime: 1
+  knockbackSpeed: 7
+  knockbackUpSpeed: 3
+  knockbackTime: 0.2
+  sprite: {fileID: 0}
+  disableOnOutOfTime: []

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,6 +11,16 @@ public class Clock : MonoBehaviour
 {
     // Lets any script reach the clock with Clock.Instance, e.g. Clock.Instance.AddTime(5)
     public static Clock Instance { get; private set; }
+
+    // Fired by AddTime (+seconds) and RemoveTime (-seconds), not by the normal drain.
+    // ClockUI uses it for the "+5s" / "-10s" popups and the red flash
+    public static event Action<float> TimeChanged;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics()
+    {
+        TimeChanged = null;
+    }
 
     // Time on the clock when the level starts
     public float startSeconds = 60f;
@@ -49,17 +60,21 @@ public class Clock : MonoBehaviour
     // Call from pickups and enemy kills
     public void AddTime(float seconds)
     {
-        if (!IsOut)
-            Remaining += seconds;
+        if (IsOut || seconds <= 0f)
+            return;
+
+        Remaining += seconds;
+        TimeChanged?.Invoke(seconds);
     }
 
-    // Call when the player gets hit
+    // Call when the player gets hit (PlayerDamage does this)
     public void RemoveTime(float seconds)
     {
-        if (IsOut)
+        if (IsOut || seconds <= 0f)
             return;
 
         Remaining -= seconds;
+        TimeChanged?.Invoke(-seconds);
         if (Remaining <= 0f)
             OutOfTime();
     }
@@ -68,7 +83,7 @@ public class Clock : MonoBehaviour
     {
         Remaining = 0f;
 
-        var player = FindAnyObjectByType<PlayerMovement>();
+        var player = UnityEngine.Object.FindAnyObjectByType<PlayerMovement>();
         if (player != null)
         {
             // Stop the controller driving world time, and stop the player moving

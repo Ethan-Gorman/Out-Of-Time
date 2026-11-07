@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// An optional chest. Opening it restores the player's health. Works once.
+// An optional chest. Opening it adds time to the clock. Works once.
 public class TreasureChest : Interactable
 {
     [Tooltip("The lid, tipped open when used. Optional, art only.")]
@@ -9,8 +9,8 @@ public class TreasureChest : Interactable
     public float openAngle = -110f;
     public float openTime = 0.35f;
 
-    [Tooltip("Health restored. 0 or less = fully healed.")]
-    public float healAmount = 0f;
+    [Tooltip("Seconds added to the clock")]
+    public float timeBonus = 15f;
 
     [TextArea] public string[] openedLines = { "A healing potion! I feel much better." };
 
@@ -37,14 +37,8 @@ public class TreasureChest : Interactable
             return;
         IsOpen = true;
 
-        var health = interactor.GetComponent<MedievalHealth>();
-        if (health != null)
-        {
-            if (healAmount > 0f)
-                health.Heal(healAmount);
-            else
-                health.HealFull();
-        }
+        if (Clock.Instance != null)
+            Clock.Instance.AddTime(timeBonus);
 
         if (MedievalUI.Instance != null)
             MedievalUI.Instance.Say(openedLines);

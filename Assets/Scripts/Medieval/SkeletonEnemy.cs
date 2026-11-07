@@ -20,11 +20,14 @@ public class SkeletonEnemy : MonoBehaviour
     public float leashRadius = 9f;
 
     [Header("Combat")]
-    public float contactDamage = 25f;
+    [Tooltip("Seconds taken off the clock on touch. Below 0 = the player's default (PlayerDamage.secondsPerHit)")]
+    public float contactTimeCost = -1f;
     [Tooltip("The player's feet must be this far above the skeleton's feet to count as a stomp.")]
     public float stompHeight = 0.7f;
     [Tooltip("Upward speed given to the player after a stomp.")]
     public float stompBounce = 4.5f;
+    [Tooltip("World-time seconds the skeleton stands still after hitting the player, giving them a chance to get away.")]
+    public float pauseAfterHit = 1f;
 
     [Header("Art")]
     public SpriteRenderer sprite;
@@ -36,6 +39,12 @@ public class SkeletonEnemy : MonoBehaviour
     Transform player;
     Vector3 home;
     bool towardsB = true;
+
+    // Counts down in world time after a hit; the skeleton doesn't move while it's above 0
+    float pauseLeft;
+
+    // Whether the skeleton moved this physics step. Its walk animation freezes when it doesn't
+    bool moving;
 
     void Awake()
     {
@@ -56,14 +65,23 @@ public class SkeletonEnemy : MonoBehaviour
 
     void Update()
     {
+        // Walk animation runs in world time, and stops while the skeleton stands still (e.g. after a hit)
         if (animator != null)
-            animator.speed = WorldTime.Scale;
+            animator.speed = moving ? WorldTime.Scale : 0f;
     }
 
     void FixedUpdate()
     {
+        moving = false;
         if (IsDead)
             return;
+
+        // Standing still after landing a hit. World time, so it lasts longer while the world is slowed
+        if (pauseLeft > 0f)
+        {
+            pauseLeft -= WorldTime.FixedDelta;
+            return;
+        }
 
         Vector3 pos = body.position;
         Vector3 target;
@@ -91,6 +109,7 @@ public class SkeletonEnemy : MonoBehaviour
 
         Vector3 step = Vector3.ClampMagnitude(to.normalized * speed * WorldTime.FixedDelta, to.magnitude);
         body.MovePosition(pos + step);
+        moving = true;
 
         if (sprite != null && Mathf.Abs(to.x) > 0.01f)
             sprite.flipX = to.x < 0f;
@@ -106,8 +125,8 @@ public class SkeletonEnemy : MonoBehaviour
         if (IsDead || other.attachedRigidbody == null)
             return;
 
-        var health = other.attachedRigidbody.GetComponent<MedievalHealth>();
-        if (health == null || health.IsDead)
+        var player = other.attachedRigidbody.GetComponent<PlayerDamage>();
+        if (player == null || player.IsOut)
             return;
 
         Rigidbody playerBody = other.attachedRigidbody;
@@ -123,7 +142,9 @@ public class SkeletonEnemy : MonoBehaviour
         }
         else
         {
-            health.Damage(contactDamage, body.position);
+            // Only pause when the hit actually landed (not while the player is invulnerable)
+            if (player.Hit(body.position, contactTimeCost))
+                pauseLeft = pauseAfterHit;
         }
     }
 

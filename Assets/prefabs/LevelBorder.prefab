@@ -66,3 +66,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d182b2e45a996400eac9826f05c897f4, type: 2}
   outsideMaterial: {fileID: 2100000, guid: 10541fd2c3a3e40f88536922d83abc10, type: 2}
   seed: 1
+  floorMaterial: {fileID: 2100000, guid: b9e0dbfe77b3d42029f7a1c88815f0f1, type: 2}

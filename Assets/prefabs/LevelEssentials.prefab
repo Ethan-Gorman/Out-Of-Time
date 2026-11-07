@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4302217236588033213}
   - component: {fileID: 823939645022073833}
   - component: {fileID: 9084832294147230773}
+  - component: {fileID: 4783162024069266863}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -154,6 +155,30 @@ MonoBehaviour:
   pitch: 35
   distance: 40
   smoothTime: 0.15
+--- !u!114 &4783162024069266863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3689692776302017762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b414fdef66124f67bf8127370c08c90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OccluderFader
+  target: {fileID: 0}
+  targetHeight: 0.6
+  radius: 0.5
+  circleRadius: 0.12
+  circleSoftness: 0.04
+  fadedAlpha: 0.3
+  fadeTime: 0.15
+  layers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  cutoutShader: {fileID: 4800000, guid: 64013cbac3cc34f259a0a53f08a5dee6, type: 3}
+  variantKeeper: {fileID: 2100000, guid: db6ee693e925948e6aa5167a3b90f14d, type: 2}
 --- !u!1 &8787543590892288561
 GameObject:
   m_ObjectHideFlags: 0

@@ -39,6 +39,11 @@ public class LevelBorder : MonoBehaviour
     [Tooltip("Change for a different random pattern. The same seed always gives the same layout")]
     public int seed = 1;
 
+    [Header("Floor")]
+    [Tooltip("Put on the painted floor when the game starts, so walls and props cast visible shadows onto it " +
+             "(Sprite Receive Shadows). Only in Play mode, so the scene file is never changed")]
+    public Material floorMaterial;
+
     const string RootName = "LevelBorder (generated)";
 
     GameObject root;
@@ -108,6 +113,9 @@ public class LevelBorder : MonoBehaviour
 
         sourceGrid = map.layoutGrid;
         float floorY = map.transform.position.y;
+
+        if (Application.isPlaying && floorMaterial != null)
+            map.GetComponent<TilemapRenderer>().sharedMaterial = floorMaterial;
 
         // Our own Grid, matching the floor's, so generated tiles line up exactly
         root = new GameObject(RootName) { hideFlags = HideFlags.DontSave };

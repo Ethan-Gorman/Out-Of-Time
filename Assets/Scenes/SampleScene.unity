@@ -17054,11 +17054,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
   newSprite: {fileID: 1777749549, guid: d71a3dc7aa20fad4f9a99fc76a9254ba, type: 3}
   oldSprite: {fileID: -155058199, guid: d71a3dc7aa20fad4f9a99fc76a9254ba, type: 3}
---- !u!1 &760430333 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 739769985888411074, guid: a62e7b306623a9e478b56dfe32732f86, type: 3}
-  m_PrefabInstance: {fileID: 6582431333236598052}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &865188085
 GameObject:
   m_ObjectHideFlags: 0
@@ -17637,18 +17632,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 959103935935330108, guid: a62e7b306623a9e478b56dfe32732f86, type: 3}
   m_PrefabInstance: {fileID: 6582431333236598052}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1476450939
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 760430333}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9507f2aa56948426ba1d351033fba143, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
 --- !u!1 &1567290991
 GameObject:
   m_ObjectHideFlags: 0
@@ -18034,10 +18017,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6985745283768946433, guid: a62e7b306623a9e478b56dfe32732f86, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1472945810}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 739769985888411074, guid: a62e7b306623a9e478b56dfe32732f86, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1476450939}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a62e7b306623a9e478b56dfe32732f86, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
