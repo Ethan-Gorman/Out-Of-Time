@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 8292583509547532086}
   - component: {fileID: 2165457641278376729}
   - component: {fileID: 3937546030171807405}
+  - component: {fileID: 2494521697125464701}
+  - component: {fileID: 9201349678372195384}
   m_Layer: 0
   m_Name: MedievalPlayer
   m_TagString: Player
@@ -30,7 +32,7 @@ Transform:
   m_GameObject: {fileID: 3346381154005733308}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: -2}
+  m_LocalPosition: {x: -12, y: 0.1, z: -13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -101,6 +103,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   speed: 5
+  accelerationTime: 0.1
+  sprintSpeedMultiplier: 1.5
   sprite: {fileID: 6107007550757369387}
   animator: {fileID: 4187687028543302252}
 --- !u!114 &2165457641278376729
@@ -116,7 +120,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeController
   minScale: 0.02
-  responsiveness: 10
+  sprintTimeCost: 2
 --- !u!114 &3937546030171807405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,6 +141,37 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &2494521697125464701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3346381154005733308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 674d684aa6e646f41a56f281824931e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MedievalHealth
+  maxHealth: 100
+  invulnerableTime: 1
+  knockbackSpeed: 7
+  knockbackUpSpeed: 3
+  knockbackTime: 0.2
+  restartDelay: 1.5
+  sprite: {fileID: 0}
+--- !u!114 &9201349678372195384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3346381154005733308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b249fda432663314dabd2ec0916549e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MedievalInteractor
 --- !u!1 &6579588762855778903
 GameObject:
   m_ObjectHideFlags: 0

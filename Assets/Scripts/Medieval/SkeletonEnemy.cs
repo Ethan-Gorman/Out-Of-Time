@@ -1,0 +1,162 @@
+using UnityEngine;
+
+// A skeleton that patrols between two points and chases the player when they come close.
+// Touching it hurts; jumping on its head defeats it.
+// Moves in world time with a kinematic Rigidbody, like EnemyChase.
+// Keep the art (SpriteRenderer, Animator, Billboard) on the "Sprite" child.
+[RequireComponent(typeof(Rigidbody))]
+public class SkeletonEnemy : MonoBehaviour
+{
+    [Header("Patrol (world positions, set on placement)")]
+    public Vector3 patrolA;
+    public Vector3 patrolB;
+    public float patrolSpeed = 1.6f;
+
+    [Header("Chase")]
+    public float chaseSpeed = 3.2f;
+    [Tooltip("Starts chasing when the player is this close.")]
+    public float aggroRadius = 6f;
+    [Tooltip("Never chases further than this from the middle of its patrol.")]
+    public float leashRadius = 9f;
+
+    [Header("Combat")]
+    public float contactDamage = 25f;
+    [Tooltip("The player's feet must be this far above the skeleton's feet to count as a stomp.")]
+    public float stompHeight = 0.7f;
+    [Tooltip("Upward speed given to the player after a stomp.")]
+    public float stompBounce = 4.5f;
+
+    [Header("Art")]
+    public SpriteRenderer sprite;
+    public Animator animator;
+
+    public bool IsDead { get; private set; }
+
+    Rigidbody body;
+    Transform player;
+    Vector3 home;
+    bool towardsB = true;
+
+    void Awake()
+    {
+        body = GetComponent<Rigidbody>();
+        body.isKinematic = true;
+
+        var p = GameObject.FindWithTag("Player");
+        if (p != null)
+            player = p.transform;
+
+        if (patrolA == Vector3.zero && patrolB == Vector3.zero)
+        {
+            patrolA = transform.position + Vector3.left * 3f;
+            patrolB = transform.position + Vector3.right * 3f;
+        }
+        home = (patrolA + patrolB) * 0.5f;
+    }
+
+    void Update()
+    {
+        if (animator != null)
+            animator.speed = WorldTime.Scale;
+    }
+
+    void FixedUpdate()
+    {
+        if (IsDead)
+            return;
+
+        Vector3 pos = body.position;
+        Vector3 target;
+        float speed;
+
+        bool playerInLeash = player != null && Flat(player.position - home).magnitude < leashRadius;
+        bool playerClose = player != null && Flat(player.position - pos).magnitude < aggroRadius;
+
+        if (playerInLeash && playerClose)
+        {
+            target = player.position;
+            speed = chaseSpeed;
+        }
+        else
+        {
+            target = towardsB ? patrolB : patrolA;
+            speed = patrolSpeed;
+            if (Flat(target - pos).sqrMagnitude < 0.04f)
+                towardsB = !towardsB;
+        }
+
+        Vector3 to = Flat(target - pos);
+        if (to.sqrMagnitude < 0.01f)
+            return;
+
+        Vector3 step = Vector3.ClampMagnitude(to.normalized * speed * WorldTime.FixedDelta, to.magnitude);
+        body.MovePosition(pos + step);
+
+        if (sprite != null && Mathf.Abs(to.x) > 0.01f)
+            sprite.flipX = to.x < 0f;
+    }
+
+    // The Hitbox child's trigger reports here (trigger messages go to the Rigidbody's object).
+    // Enter as well as Stay: Stay stops firing once both bodies are still and asleep
+    void OnTriggerEnter(Collider other) => Touch(other);
+    void OnTriggerStay(Collider other) => Touch(other);
+
+    void Touch(Collider other)
+    {
+        if (IsDead || other.attachedRigidbody == null)
+            return;
+
+        var health = other.attachedRigidbody.GetComponent<MedievalHealth>();
+        if (health == null || health.IsDead)
+            return;
+
+        Rigidbody playerBody = other.attachedRigidbody;
+        bool above = playerBody.position.y > body.position.y + stompHeight;
+        bool falling = playerBody.linearVelocity.y <= 0.5f;
+
+        if (above && falling)
+        {
+            Vector3 v = playerBody.linearVelocity;
+            v.y = stompBounce;
+            playerBody.linearVelocity = v;
+            Die();
+        }
+        else
+        {
+            health.Damage(contactDamage, body.position);
+        }
+    }
+
+    public void Die()
+    {
+        if (IsDead)
+            return;
+        IsDead = true;
+
+        if (animator != null)
+        {
+            animator.SetBool("Dead", true);
+            animator.speed = 1f;
+        }
+        foreach (var c in GetComponentsInChildren<Collider>())
+            c.enabled = false;
+        enabled = false;
+        Destroy(gameObject, 2f);
+    }
+
+    static Vector3 Flat(Vector3 v)
+    {
+        v.y = 0f;
+        return v;
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(patrolA, patrolB);
+        Gizmos.color = new Color(1f, 0.3f, 0.2f, 0.6f);
+        Gizmos.DrawWireSphere(transform.position, aggroRadius);
+        Gizmos.color = new Color(0.3f, 0.6f, 1f, 0.6f);
+        Gizmos.DrawWireSphere(Application.isPlaying ? home : (patrolA + patrolB) * 0.5f, leashRadius);
+    }
+}
