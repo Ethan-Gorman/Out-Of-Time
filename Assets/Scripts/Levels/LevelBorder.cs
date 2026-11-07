@@ -138,8 +138,8 @@ public class LevelBorder : MonoBehaviour
 
         var rng = new System.Random(seed);
         int order = map.GetComponent<TilemapRenderer>().sortingOrder;
-        CreateLayer("Outside", outsideCells, outsideTiles, outsideMaterial, floorY, order, rng);
-        CreateLayer("Wall Top", wallCells, wallTiles, wallTopMaterial, floorY + wallHeight + 0.01f, order + 1, rng);
+        CreateLayer("Outside", outsideCells, outsideTiles, outsideMaterial, floorY, order, rng, map);
+        CreateLayer("Wall Top", wallCells, wallTiles, wallTopMaterial, floorY + wallHeight + 0.01f, order + 1, rng, map);
 
         // Four solid blocks under the wall tops: south, north, west, east
         CreateBlock("Wall South", new Vector3Int(b.xMin - t, b.yMin - t), new Vector3Int(b.xMax + t, b.yMin), floorY);
@@ -148,7 +148,7 @@ public class LevelBorder : MonoBehaviour
         CreateBlock("Wall East", new Vector3Int(b.xMax, b.yMin), new Vector3Int(b.xMax + t, b.yMax), floorY);
     }
 
-    void CreateLayer(string name, List<Vector3Int> cells, TileBase[] tiles, Material material, float worldY, int order, System.Random rng)
+    void CreateLayer(string name, List<Vector3Int> cells, TileBase[] tiles, Material material, float worldY, int order, System.Random rng, Tilemap source)
     {
         var choices = tiles?.Where(tile => tile != null).ToArray();
         if (cells.Count == 0 || choices == null || choices.Length == 0)
@@ -160,6 +160,12 @@ public class LevelBorder : MonoBehaviour
         go.transform.position = new Vector3(p.x, worldY, p.z);
 
         var map = go.AddComponent<Tilemap>();
+
+        // Match the floor's tile orientation (XZ), or the tiles stand up vertically
+        map.orientation = source.orientation;
+        map.orientationMatrix = source.orientationMatrix;
+        map.tileAnchor = source.tileAnchor;
+
         var tilemapRenderer = go.AddComponent<TilemapRenderer>();
         tilemapRenderer.sortingOrder = order;
         if (material != null)
