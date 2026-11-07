@@ -21,9 +21,12 @@ public class PlayerMovement : MonoBehaviour
     // The billboard sprite on the child "Sprite" object, flipped to face the move direction
     public SpriteRenderer sprite;
 
-    // The Animator on the same "Sprite" child, using AcPlayer (Stand / Run / Dead).
-    // Runs on normal time: only the world slows down, never the player
+    // The Animator on the same "Sprite" child, using AcPlayer (Stand / Run / Dead)
     public Animator animator;
+
+    [Tooltip("The player's animation slows down with world time, but never below this speed. " +
+             "0.15 = standing still plays the idle at 15%. 1 = never slows")]
+    [Range(0f, 1f)] public float slowestAnimationSpeed = 0.15f;
 
     Rigidbody body;
     InputAction move;
@@ -109,16 +112,21 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetFloat("Speed", SpeedFraction);
 
-            // Legs speed up as the sprint builds
-            animator.speed = Mathf.Lerp(1f, sprintSpeedMultiplier, SprintAmount);
+            // Legs speed up as the sprint builds, and the whole animation slows down with the world
+            // (movement itself stays full speed: only how the player looks slows)
+            float worldTime = Mathf.Max(WorldTime.Scale, slowestAnimationSpeed);
+            animator.speed = Mathf.Lerp(1f, sprintSpeedMultiplier, SprintAmount) * worldTime;
         }
     }
 
     // Plays the death animation. Called by Clock when time runs out
     public void PlayDeath()
     {
-        if (animator != null)
-            animator.SetTrigger("Dead");
+        if (animator == null)
+            return;
+        // World time is frozen when time runs out, so play the death at normal speed
+        animator.speed = 1f;
+        animator.SetTrigger("Dead");
     }
 
     void FixedUpdate()

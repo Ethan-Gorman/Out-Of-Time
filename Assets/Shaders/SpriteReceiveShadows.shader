@@ -1,4 +1,4 @@
-// Unlit sprite/tilemap shader for the floor, with three bits of lighting so it doesn't feel static:
+// Unlit sprite/tilemap shader for the floor (with a hue shift to recolour it), plus three bits of lighting:
 //  - shadows from the main light (walls, props and blocks cast visible shadows onto it)
 //  - glow from point and spot lights, so torch flicker shows as warm pools on the ground
 //  - slowly drifting cloud shadows
@@ -7,14 +7,21 @@ Shader "Out Of Time/Sprite Receive Shadows"
     Properties
     {
         [MainTexture] _MainTex ("Sprite", 2D) = "white" {}
+        _BaseBrightness ("Base Brightness (lower = darker floor, torches stand out more)", Range(0, 1.5)) = 0.8
+
+        [Header(Colour)]
+        _HueShift ("Hue Shift (degrees; -80 turns green grass brown)", Range(-180, 180)) = -80
+        _SaturationScale ("Saturation (1 = unchanged)", Range(0, 2)) = 0.7
 
         [Header(Shadows)]
         _ShadowStrength ("Shadow Strength", Range(0, 1)) = 0.55
         _ShadowColor ("Shadow Tint", Color) = (0.25, 0.25, 0.4, 1)
 
         [Header(Torches and other lights)]
-        _LightStrength ("Light Strength", Range(0, 2)) = 0.35
+        _LightStrength ("Light Strength", Range(0, 2)) = 0.6
         _LightMax ("Max Brightening", Range(0, 4)) = 1.2
+        _LightBands ("Light Rings (0 = smooth; match the walls' Toon Torch Rings)", Range(0, 8)) = 4
+        _LightBandSoftness ("Light Ring Edge Softness", Range(0, 0.5)) = 0.18
 
         [Header(Clouds)]
         _CloudStrength ("Cloud Shadow Strength", Range(0, 1)) = 0.4
@@ -48,6 +55,7 @@ Shader "Out Of Time/Sprite Receive Shadows"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "OOTLights.hlsl"
 
             struct Attributes
             {
@@ -69,10 +77,15 @@ Shader "Out Of Time/Sprite Receive Shadows"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
+                float _BaseBrightness;
+                float _HueShift;
+                float _SaturationScale;
                 float _ShadowStrength;
                 float4 _ShadowColor;
                 float _LightStrength;
                 float _LightMax;
+                float _LightBands;
+                float _LightBandSoftness;
                 float _CloudStrength;
                 float _CloudScale;
                 float4 _CloudSpeed;
@@ -103,31 +116,17 @@ Shader "Out Of Time/Sprite Receive Shadows"
                             lerp(Hash(i + float2(0, 1)), Hash(i + float2(1, 1)), u.x), u.y);
             }
 
-            // Sum of point/spot light colour reaching this bit of floor (the floor faces straight up)
-            half3 AdditionalLightGlow(float3 positionWS, float4 positionHCS)
-            {
-                half3 glow = 0;
-            #if defined(_ADDITIONAL_LIGHTS) || USE_CLUSTER_LIGHT_LOOP
-                // URP's light loop macro expects a variable called inputData
-                InputData inputData = (InputData)0;
-                inputData.positionWS = positionWS;
-                inputData.normalWS = half3(0, 1, 0);
-                inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(positionHCS);
-
-                uint pixelLightCount = GetAdditionalLightsCount();
-                LIGHT_LOOP_BEGIN(pixelLightCount)
-                    Light light = GetAdditionalLight(lightIndex, positionWS, half4(1, 1, 1, 1));
-                    // Soft wrap so light just beside a torch still glows, not only directly below it
-                    half facing = saturate(light.direction.y) * 0.5 + 0.5;
-                    glow += light.color * (light.distanceAttenuation * light.shadowAttenuation * facing);
-                LIGHT_LOOP_END
-            #endif
-                return glow;
-            }
-
             half4 frag(Varyings input) : SV_Target
             {
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * input.color;
+                c.rgb *= _BaseBrightness;
+
+                // Recolour: rotate the hue (green -> brown by default) and tone down saturation.
+                // Pale colours (white flowers, grey stones) barely change, since they have little hue to rotate
+                float3 hsv = RgbToHsv(c.rgb);
+                hsv.x = frac(hsv.x + _HueShift / 360.0);
+                hsv.y = saturate(hsv.y * _SaturationScale);
+                c.rgb = HsvToRgb(hsv);
 
                 // 1 = fully lit, 0 = fully in shadow. Includes URP's fade at the shadow distance
                 float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);
@@ -139,11 +138,13 @@ Shader "Out Of Time/Sprite Receive Shadows"
                 float cloud = ValueNoise(cloudPos) * 0.65 + ValueNoise(cloudPos * 2.3 + 17.0) * 0.35;
                 shadow = saturate(shadow + smoothstep(0.35, 0.7, cloud) * _CloudStrength);
 
+                // Torches and other lights: the same banded sphere of light as on the walls (OOTLights.hlsl).
+                // Inside a torch's circle the shadows give way, so the circle always reads as lit
+                half3 glow = OOTTorchGlow(input.positionWS, input.positionHCS, half4(1, 1, 1, 1), _LightStrength, _LightMax, _LightBands, _LightBandSoftness);
+                shadow *= 1.0 - OOTTorchCoverage(glow, _LightMax);
+
                 // Tint towards the shadow colour rather than plain black, which reads better with pixel art
                 c.rgb *= lerp(half3(1, 1, 1), _ShadowColor.rgb, shadow);
-
-                // Torches and other lights brighten and warm the floor (capped so it never blows out)
-                half3 glow = min(AdditionalLightGlow(input.positionWS, input.positionHCS) * _LightStrength, _LightMax);
                 c.rgb += c.rgb * glow;
                 return c;
             }

@@ -1,5 +1,6 @@
-// Generated from URP Lit (com.unity.render-pipelines.universal 17.6) by adding OccluderCutout.hlsl
-// to the ForwardLit, DepthOnly and DepthNormals passes. Same properties and look as Lit.
+// Generated from URP Lit (com.unity.render-pipelines.universal 17.6). Adds to the ForwardLit pass:
+// the OccluderCutout.hlsl see-through hole, optional world-space UVs, and a toon shading mode
+// (_OOT_Toon, on by default). Same properties as Lit, so Lit materials switch over with no changes.
 // OccluderFader swaps walls to this shader while they block the player.
 Shader "Out Of Time/Lit Cutout"
 {
@@ -11,6 +12,24 @@ Shader "Out Of Time/Lit Cutout"
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         _OOT_WorldUV("World Space UVs (1 = on, Tiling = repeats per unit)", Range(0, 1)) = 0
+        _OOT_Toon("Toon Shading (1 = on, 0 = normal Lit)", Range(0, 1)) = 1
+        _OOT_ToonBands("Toon Light Bands", Range(1, 6)) = 3
+        _OOT_ToonSoftness("Toon Band Edge Softness", Range(0, 0.5)) = 0.12
+        _OOT_ShadowTint("Toon Shadow Tint", Color) = (0.32, 0.3, 0.48, 1)
+        _OOT_AmbientStrength("Toon Ambient Strength", Range(0, 2)) = 0.25
+        _OOT_TorchStrength("Toon Torch Strength (match the floor's Light Strength)", Range(0, 2)) = 0.6
+        _OOT_TorchMax("Toon Torch Max Brightening (match the floor's)", Range(0, 4)) = 1.2
+        _OOT_TorchBands("Toon Torch Rings (0 = smooth; match the floor's Light Rings)", Range(0, 8)) = 4
+        _OOT_TorchBandSoftness("Toon Torch Ring Edge Softness", Range(0, 0.5)) = 0.18
+        _OOT_TopAtlas("Top Faces: Tile Atlas (e.g. Tiles.png; leave empty for the normal texture)", 2D) = "white" {}
+        _OOT_TopCount("Top Faces: Number of Tiles Used", Range(0, 6)) = 0
+        _OOT_TopRect0("Top Faces: Tile 0 Rect (UV x, y, w, h)", Vector) = (0, 0, 1, 1)
+        _OOT_TopRect1("Top Faces: Tile 1 Rect", Vector) = (0, 0, 1, 1)
+        _OOT_TopRect2("Top Faces: Tile 2 Rect", Vector) = (0, 0, 1, 1)
+        _OOT_TopRect3("Top Faces: Tile 3 Rect", Vector) = (0, 0, 1, 1)
+        _OOT_TopRect4("Top Faces: Tile 4 Rect", Vector) = (0, 0, 1, 1)
+        _OOT_TopRect5("Top Faces: Tile 5 Rect", Vector) = (0, 0, 1, 1)
+        _OOT_TopBrightness("Top Faces: Brightness", Range(0, 2)) = 0.9
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -194,6 +213,82 @@ Shader "Out Of Time/Lit Cutout"
             #include "OccluderCutout.hlsl"
             float _OOT_Strength; // per renderer, 0..1, set by OccluderFader through a MaterialPropertyBlock
             float _OOT_WorldUV;  // 1 = map the base texture in world space (see Properties)
+            float _OOT_Toon;
+            float _OOT_ToonBands;
+            float _OOT_ToonSoftness;
+            float4 _OOT_ShadowTint;
+            float _OOT_AmbientStrength;
+            float _OOT_TorchStrength;
+            float _OOT_TorchMax;
+            float _OOT_TorchBands;
+            float _OOT_TorchBandSoftness;
+            TEXTURE2D(_OOT_TopAtlas);
+            SAMPLER(sampler_OOT_TopAtlas);
+            float _OOT_TopCount;
+            float4 _OOT_TopRect0, _OOT_TopRect1, _OOT_TopRect2, _OOT_TopRect3, _OOT_TopRect4, _OOT_TopRect5;
+            float _OOT_TopBrightness;
+            #include "OOTLights.hlsl"
+
+            // Light quantised into flat bands with slightly soft edges (pixel art / cartoon shading)
+            half OOTBand(half x)
+            {
+                half bands = max(1.0, _OOT_ToonBands);
+                half f = saturate(x) * bands;
+                half i = floor(f);
+                half edge = smoothstep(0.5 - _OOT_ToonSoftness, 0.5 + _OOT_ToonSoftness, f - i);
+                return saturate((i + edge) / bands);
+            }
+
+            // Toon version of Lit: same surface inputs (colour, texture, emission), but flat banded light,
+            // a tinted shadow colour instead of black, flat ambient, and banded torch/point lights
+            half4 OOTToonShade(Varyings input)
+            {
+                SurfaceData surfaceData;
+                InitializeStandardLitSurfaceData(input.uv, surfaceData);
+                InputData inputData;
+                InitializeInputData(input, surfaceData.normalTS, inputData);
+                InitializeBakedGIData(input, inputData);
+
+                half3 albedo = surfaceData.albedo;
+
+                // Top faces: random tiles from the atlas, greyscale, like the border's wall tops.
+                // The grid starts at this block's own corner and stretches so a whole number of tiles
+                // fits, so tops are never cropped mid-tile (assumes an unrotated box, like StoneBlock)
+                if (_OOT_TopCount >= 1.0 && inputData.normalWS.y > 0.7)
+                {
+                    float4x4 toWorld = GetObjectToWorldMatrix();
+                    float2 extent = float2(length(toWorld._m00_m10_m20), length(toWorld._m02_m12_m22));
+                    float2 corner = toWorld._m03_m23 - 0.5 * extent;
+                    float2 count = max(1.0, round(extent));
+                    float2 grid = (input.positionWS.xz - corner) / (extent / count);
+                    float2 cell = floor(grid);
+                    float pick = frac(sin(dot(cell + corner, float2(127.1, 311.7))) * 43758.5453);
+                    int index = min((int)(pick * _OOT_TopCount), (int)_OOT_TopCount - 1);
+                    float4 rects[6] = { _OOT_TopRect0, _OOT_TopRect1, _OOT_TopRect2, _OOT_TopRect3, _OOT_TopRect4, _OOT_TopRect5 };
+                    float4 rect = rects[index];
+                    // Stay just inside the tile so neighbouring atlas tiles never bleed in
+                    float2 local = clamp(frac(grid), 0.01, 0.99);
+                    half3 tile = SAMPLE_TEXTURE2D(_OOT_TopAtlas, sampler_OOT_TopAtlas, rect.xy + local * rect.zw).rgb;
+                    albedo = Luminance(tile) * _OOT_TopBrightness;
+                }
+
+                // Torches: the same banded sphere of light as on the floor (OOTLights.hlsl), so walls and floor match
+                half3 glow = OOTTorchGlow(inputData.positionWS, input.positionCS, inputData.shadowMask, _OOT_TorchStrength, _OOT_TorchMax, _OOT_TorchBands, _OOT_TorchBandSoftness);
+
+                // Sun, in flat bands with a tinted shadow. Inside a torch's circle the shadow gives way,
+                // so the circle always reads as lit
+                Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+                half direct = saturate(dot(inputData.normalWS, mainLight.direction)) * mainLight.shadowAttenuation;
+                half lit = max(OOTBand(direct), OOTTorchCoverage(glow, _OOT_TorchMax));
+                half3 color = albedo * lerp(_OOT_ShadowTint.rgb, half3(1, 1, 1), lit) * mainLight.color;
+                color += albedo * inputData.bakedGI * _OOT_AmbientStrength;
+                color += albedo * glow;
+
+                color += surfaceData.emission;
+                color = MixFog(color, inputData.fogCoord);
+                return half4(color, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent()));
+            }
+
             void CutoutLitFragment(Varyings input, out half4 outColor : SV_Target0
             #ifdef _WRITE_RENDERING_LAYERS
                 , out uint outRenderingLayers : SV_Target1
@@ -208,6 +303,14 @@ Shader "Out Of Time/Lit Cutout"
                     float2 world = n.y > max(n.x, n.z) ? input.positionWS.xz
                                  : (n.x > n.z ? input.positionWS.zy : input.positionWS.xy);
                     input.uv = world * _BaseMap_ST.xy + _BaseMap_ST.zw;
+                }
+                if (_OOT_Toon > 0.5)
+                {
+                    outColor = OOTToonShade(input);
+                #ifdef _WRITE_RENDERING_LAYERS
+                    outRenderingLayers = EncodeMeshRenderingLayer();
+                #endif
+                    return;
                 }
                 LitPassFragment(input, outColor
             #ifdef _WRITE_RENDERING_LAYERS
@@ -404,9 +507,23 @@ Shader "Out Of Time/Lit Cutout"
             #include "OccluderCutout.hlsl"
             float _OOT_Strength; // per renderer, 0..1, set by OccluderFader through a MaterialPropertyBlock
             float _OOT_WorldUV;  // 1 = map the base texture in world space (see Properties)
+            float _OOT_Toon;
+            float _OOT_ToonBands;
+            float _OOT_ToonSoftness;
+            float4 _OOT_ShadowTint;
+            float _OOT_AmbientStrength;
+            float _OOT_TorchStrength;
+            float _OOT_TorchMax;
+            float _OOT_TorchBands;
+            float _OOT_TorchBandSoftness;
+            TEXTURE2D(_OOT_TopAtlas);
+            SAMPLER(sampler_OOT_TopAtlas);
+            float _OOT_TopCount;
+            float4 _OOT_TopRect0, _OOT_TopRect1, _OOT_TopRect2, _OOT_TopRect3, _OOT_TopRect4, _OOT_TopRect5;
+            float _OOT_TopBrightness;
             half CutoutDepthOnlyFragment(Varyings input) : SV_TARGET
             {
-                OOTCutoutScreen(input.positionCS, _OOT_Strength);
+                // Not cut: depth/normals keep the whole wall, so its edges are outlined right across the see-through hole
                 return DepthOnlyFragment(input);
             }
 
@@ -468,13 +585,27 @@ Shader "Out Of Time/Lit Cutout"
             #include "OccluderCutout.hlsl"
             float _OOT_Strength; // per renderer, 0..1, set by OccluderFader through a MaterialPropertyBlock
             float _OOT_WorldUV;  // 1 = map the base texture in world space (see Properties)
+            float _OOT_Toon;
+            float _OOT_ToonBands;
+            float _OOT_ToonSoftness;
+            float4 _OOT_ShadowTint;
+            float _OOT_AmbientStrength;
+            float _OOT_TorchStrength;
+            float _OOT_TorchMax;
+            float _OOT_TorchBands;
+            float _OOT_TorchBandSoftness;
+            TEXTURE2D(_OOT_TopAtlas);
+            SAMPLER(sampler_OOT_TopAtlas);
+            float _OOT_TopCount;
+            float4 _OOT_TopRect0, _OOT_TopRect1, _OOT_TopRect2, _OOT_TopRect3, _OOT_TopRect4, _OOT_TopRect5;
+            float _OOT_TopBrightness;
             void CutoutDepthNormalsFragment(Varyings input, out half4 outNormalWS : SV_Target0
             #ifdef _WRITE_RENDERING_LAYERS
                 , out uint outRenderingLayers : SV_Target1
             #endif
             )
             {
-                OOTCutoutScreen(input.positionCS, _OOT_Strength);
+                // Not cut: depth/normals keep the whole wall, so its edges are outlined right across the see-through hole
                 DepthNormalsFragment(input, outNormalWS
             #ifdef _WRITE_RENDERING_LAYERS
                     , outRenderingLayers

@@ -32,11 +32,11 @@ public class OccluderFader : MonoBehaviour
 
     [Header("Hole")]
     [Tooltip("Hole radius (half its height) as a fraction of screen height")]
-    [Range(0.02f, 0.5f)] public float circleRadius = 0.18f;
+    [Range(0.02f, 0.5f)] public float circleRadius = 0.22f;
     [Tooltip("Width of the dithered soft edge, as a fraction of screen height")]
-    [Range(0f, 0.2f)] public float circleSoftness = 0.06f;
+    [Range(0f, 0.2f)] public float circleSoftness = 0.09f;
     [Tooltip("How many times wider than tall the hole is. 1 = circle, bigger = wide oval")]
-    [Range(1f, 3f)] public float circleWidth = 1.6f;
+    [Range(1f, 3f)] public float circleWidth = 1.3f;
     [Tooltip("How much wall is left in the middle of the hole. 0 = fully clear, only the edge is dithered")]
     [Range(0f, 1f)] public float fadedAlpha = 0f;
     [Tooltip("Faint wash over the hole (alpha = strength in the middle). No dither")]
@@ -66,6 +66,7 @@ public class OccluderFader : MonoBehaviour
     static readonly int ShapeId = Shader.PropertyToID("_OOT_CutoutShape");
     static readonly int PlayerId = Shader.PropertyToID("_OOT_CutoutPlayer");
     static readonly int StrengthId = Shader.PropertyToID("_OOT_Strength");
+    static readonly int PlayerEyeDepthId = Shader.PropertyToID("_OOT_PlayerEyeDepth");
     static readonly int TintColorId = Shader.PropertyToID("_TintColor");
     static readonly int CapColorId = Shader.PropertyToID("_CapColor");
     const string LitShaderName = "Universal Render Pipeline/Lit";
@@ -151,6 +152,14 @@ public class OccluderFader : MonoBehaviour
         foreach (var r in finished)
             Restore(r);
         finished.Clear();
+
+        // How open the most-open hole is, for the outline pass that redraws cut walls' edges inside the hole
+        float open = 0f;
+        foreach (var c in cuts.Values)
+            open = Mathf.Max(open, c.fade);
+        Vector4 centre = Shader.GetGlobalVector(CenterId);
+        centre.w = open;
+        Shader.SetGlobalVector(CenterId, centre);
     }
 
     // ---------------------------------------------------------------- the one rule
@@ -288,6 +297,7 @@ public class OccluderFader : MonoBehaviour
         Shader.SetGlobalVector(CenterId, new Vector4(viewport.x, viewport.y, circleWidth, 0f));
         Shader.SetGlobalVector(ShapeId, new Vector4(circleRadius, circleSoftness, feet.y + minCutHeight, cutHeightRamp));
         Shader.SetGlobalVector(PlayerId, new Vector4(feet.x, feet.y, feet.z, 1f - fadedAlpha));
+        Shader.SetGlobalFloat(PlayerEyeDepthId, viewport.z);
     }
 
     void SetStrength(Renderer r, float strength)

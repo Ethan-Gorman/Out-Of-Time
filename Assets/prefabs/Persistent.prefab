@@ -166,6 +166,7 @@ GameObject:
   - component: {fileID: 7777692824952562235}
   - component: {fileID: 3682194816763652154}
   - component: {fileID: 3049897051404902782}
+  - component: {fileID: 8103334153092056593}
   m_Layer: 0
   m_Name: Persistent
   m_TagString: Untagged
@@ -234,7 +235,31 @@ MonoBehaviour:
   freezeFadeTime: 1.5
   frozenCutoff: 800
   openCutoff: 22000
-  frozenPitch: 0.9
+  frozenReverb: -1200
+  reverbDecay: 3
+  sprintDrumBoost: 1.25
+--- !u!114 &8103334153092056593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1776405195666923965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64c9c4bfacad64b5295fb51dc3a36843, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EraPalette
+  palettes:
+  - era: 0
+    palette: {fileID: 2800000, guid: eff16292cfee040fe982f5f8bb21e741, type: 3}
+  - era: 1
+    palette: {fileID: 2800000, guid: 7351e3c75ae6a4d8fbfbc90dbe3c8bfc, type: 3}
+  - era: 2
+    palette: {fileID: 2800000, guid: 12c00d73eee134a878bd12f3ebeed842, type: 3}
+  - era: 3
+    palette: {fileID: 2800000, guid: a2c6db5248ce54d02b2faa641cbb7b0a, type: 3}
+  strength: 0.35
 --- !u!1 &8296136991569788997
 GameObject:
   m_ObjectHideFlags: 0

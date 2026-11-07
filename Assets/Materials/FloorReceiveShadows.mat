@@ -29,8 +29,18 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _BaseBrightness: 0.8
+    - _CloudScale: 0.07
+    - _CloudStrength: 0.12
+    - _HueShift: -80
+    - _LightBandSoftness: 0.18
+    - _LightBands: 4
+    - _LightMax: 1.2
+    - _LightStrength: 0.6
+    - _SaturationScale: 0.7
     - _ShadowStrength: 0.55
     m_Colors:
+    - _CloudSpeed: {r: 0.6, g: 0.25, b: 0, a: 0}
     - _ShadowColor: {r: 0.24999997, g: 0.24999997, b: 0.39999998, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

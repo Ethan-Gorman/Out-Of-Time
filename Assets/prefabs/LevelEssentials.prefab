@@ -171,9 +171,9 @@ MonoBehaviour:
   targetHeight: 0.6
   headInset: 0.15
   headSpread: 0.6
-  circleRadius: 0.18
-  circleSoftness: 0.06
-  circleWidth: 1.6
+  circleRadius: 0.22
+  circleSoftness: 0.09
+  circleWidth: 1.3
   fadedAlpha: 0
   tintColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.05}
   capColor: {r: 0.2, g: 0.2, b: 0.23, a: 1}

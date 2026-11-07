@@ -56,6 +56,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _OOT_TopAtlas:
+        m_Texture: {fileID: 2800000, guid: 9ee30eb7d2f1f404790266ee96a67099, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -101,6 +105,16 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
+    - _OOT_AmbientStrength: 0.25
+    - _OOT_Toon: 1
+    - _OOT_ToonBands: 3
+    - _OOT_ToonSoftness: 0.12
+    - _OOT_TopBrightness: 0.9
+    - _OOT_TopCount: 6
+    - _OOT_TorchBandSoftness: 0.18
+    - _OOT_TorchBands: 4
+    - _OOT_TorchMax: 1.2
+    - _OOT_TorchStrength: 0.6
     - _OOT_WorldUV: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.005
@@ -121,6 +135,13 @@ Material:
     - _BaseColor: {r: 0.6, g: 0.57, b: 0.52, a: 1}
     - _Color: {r: 0.6, g: 0.56999993, b: 0.52, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OOT_ShadowTint: {r: 0.31999996, g: 0.29999998, b: 0.47999996, a: 1}
+    - _OOT_TopRect0: {r: 0, g: 0.5135135, b: 0.32142857, a: 0.4864865}
+    - _OOT_TopRect1: {r: 0.3392857, g: 0.5135135, b: 0.32142857, a: 0.4864865}
+    - _OOT_TopRect2: {r: 0.6785714, g: 0.5135135, b: 0.32142857, a: 0.4864865}
+    - _OOT_TopRect3: {r: 0, g: 0, b: 0.32142857, a: 0.4864865}
+    - _OOT_TopRect4: {r: 0.3392857, g: 0, b: 0.32142857, a: 0.4864865}
+    - _OOT_TopRect5: {r: 0.6785714, g: 0, b: 0.32142857, a: 0.4864865}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

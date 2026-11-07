@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 362980460145294172}
   - component: {fileID: 1835107985180025421}
   - component: {fileID: 1469588306487102412}
+  - component: {fileID: 2673918189424294061}
   m_Layer: 0
   m_Name: Sprite
   m_TagString: Untagged
@@ -107,6 +108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Billboard
   lockUpright: 0
+  pixelSnap: 1
 --- !u!95 &1469588306487102412
 Animator:
   serializedVersion: 7
@@ -129,6 +131,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2673918189424294061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6124295318665874033}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61ae07adadc8a44228c25ab53fcc50e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteShadowCaster
+  shadowMaterial: {fileID: 2100000, guid: c88e2106ae17a4221bc50cb4d4b8147d, type: 2}
+  sun: {fileID: 0}
 --- !u!1 &8731023776067835695
 GameObject:
   m_ObjectHideFlags: 0
@@ -233,6 +249,7 @@ MonoBehaviour:
   sprintSpeedMultiplier: 1.5
   sprite: {fileID: 362980460145294172}
   animator: {fileID: 1469588306487102412}
+  slowestAnimationSpeed: 0.15
 --- !u!114 &3348484813960707367
 MonoBehaviour:
   m_ObjectHideFlags: 0
