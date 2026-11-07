@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: ce0c3c38dfaa2cd4dabbc196d0c06a99
+=======
+guid: 2f2e9fc726af7432f91fa9221b04b5b2
+>>>>>>> 4d3de79 (music files)
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
