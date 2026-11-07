@@ -15,6 +15,7 @@ public class ClockUI : MonoBehaviour
     [Range(0.2f, 1f)] public float multiplierSize = 0.55f;
     public Color multiplierFullColor = new Color(1f, 1f, 1f, 0.6f);
     public Color multiplierSlowColor = new Color(0.45f, 0.8f, 1f);
+    public Color multiplierSprintColor = new Color(1f, 0.65f, 0.25f);
 
     Text label;
 
@@ -54,11 +55,15 @@ public class ClockUI : MonoBehaviour
         transform.localScale = Vector3.one * pulse;
     }
 
-    // Smaller, coloured "×0.42" showing how fast the world is running. Blends towards blue as time slows
+    // Smaller, coloured "×0.42" showing how fast the clock is draining.
+    // Blends towards blue as time slows, orange while sprinting (×1.50)
     string Multiplier()
     {
-        float scale = WorldTime.Scale;
-        Color c = Color.Lerp(multiplierSlowColor, multiplierFullColor, scale);
+        float scale = WorldTime.Scale * WorldTime.ClockCost;
+        Color c = Color.Lerp(
+            Color.Lerp(multiplierSlowColor, multiplierFullColor, WorldTime.Scale),
+            multiplierSprintColor,
+            WorldTime.Sprint);
         int size = Mathf.RoundToInt(label.fontSize * multiplierSize);
         return $"<size={size}><color=#{ColorUtility.ToHtmlStringRGBA(c)}>×{scale:0.00}</color></size>";
     }

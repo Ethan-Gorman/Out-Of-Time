@@ -40,7 +40,7 @@ public class Clock : MonoBehaviour
 
         // Drain at world speed, but never slower than idleDrain,
         // so standing still to plan still costs something
-        Remaining -= Time.deltaTime * Mathf.Max(WorldTime.Scale, idleDrain);
+        Remaining -= Time.deltaTime * Mathf.Max(WorldTime.Scale, idleDrain) * WorldTime.ClockCost;
 
         if (Remaining <= 0f)
             OutOfTime();
