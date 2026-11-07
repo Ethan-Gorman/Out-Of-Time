@@ -170,8 +170,8 @@ MonoBehaviour:
   target: {fileID: 0}
   targetHeight: 0.6
   radius: 0.5
-  circleRadius: 0.12
-  circleSoftness: 0.04
+  circleRadius: 0.18
+  circleSoftness: 0.06
   fadedAlpha: 0.3
   fadeTime: 0.15
   layers:

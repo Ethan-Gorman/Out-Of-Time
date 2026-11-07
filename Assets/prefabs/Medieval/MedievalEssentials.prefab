@@ -178,8 +178,8 @@ MonoBehaviour:
   target: {fileID: 0}
   targetHeight: 0.6
   radius: 0.5
-  circleRadius: 0.12
-  circleSoftness: 0.04
+  circleRadius: 0.18
+  circleSoftness: 0.06
   fadedAlpha: 0.3
   fadeTime: 0.15
   layers:
@@ -294,7 +294,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4483718981428650069, guid: 7e758ab58a925483880b07f89fdddc6a, type: 3}
       propertyPath: wallHeight
-      value: 2.5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6754530760674776471, guid: 7e758ab58a925483880b07f89fdddc6a, type: 3}
       propertyPath: m_Name

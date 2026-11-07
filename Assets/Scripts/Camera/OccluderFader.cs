@@ -23,9 +23,9 @@ public class OccluderFader : MonoBehaviour
 
     [Header("Circle")]
     [Tooltip("Circle radius as a fraction of screen height")]
-    [Range(0.02f, 0.5f)] public float circleRadius = 0.12f;
+    [Range(0.02f, 0.5f)] public float circleRadius = 0.18f;
     [Tooltip("Width of the dithered soft edge, as a fraction of screen height")]
-    [Range(0f, 0.2f)] public float circleSoftness = 0.04f;
+    [Range(0f, 0.2f)] public float circleSoftness = 0.06f;
     [Tooltip("How see-through the middle of the circle gets. 0.3 = 30% of the wall left")]
     [Range(0f, 1f)] public float fadedAlpha = 0.3f;
     [Tooltip("Seconds for the circle to open or close")]

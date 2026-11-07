@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelBorder
   floor: {fileID: 0}
   wallThickness: 3
-  wallHeight: 1
+  wallHeight: 6
   wallTiles:
   - {fileID: 11400000, guid: fd0f63b06354f4513bf7700b299b2333, type: 2}
   - {fileID: 11400000, guid: ae7c98b6f3a25426ab4c53bb7a431161, type: 2}
