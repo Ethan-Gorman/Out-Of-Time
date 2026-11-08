@@ -4,7 +4,8 @@ using UnityEngine.SceneManagement;
 
 // Hooks the small particle effects onto things when a scene loads, without touching their scripts or prefabs
 // (the same pattern as InteractOutline):
-//  - FlameEmbers on every TorchFlicker (torches, lanterns, the caveman bonfire)
+//  - FlameEmbers on every flame (bonfire, campfires, clay oven, furnace, torches, lanterns), each with its own
+//    amount, size and colour; not on the electric factory lamps
 //  - FxSparkle on crystals (cyan) and Time Coins (gold)
 //  - DeathPuff on skeletons, clockwork guards and the boar
 //  - a green and gold burst of sparks around the player whenever the Clock gains time
@@ -54,8 +55,8 @@ public static class FxBootstrap
         const FindObjectsInactive all = FindObjectsInactive.Include;
         const FindObjectsSortMode any = FindObjectsSortMode.None;
         foreach (var c in Object.FindObjectsByType<TorchFlicker>(all, any))
-            if (!IsElectric(c) && c.GetComponent<FlameEmbers>() == null)
-                c.gameObject.AddComponent<FlameEmbers>();
+            if (FireKind(c, out var kind) && c.GetComponent<FlameEmbers>() == null)
+                c.gameObject.AddComponent<FlameEmbers>().kind = kind;
         foreach (var c in Object.FindObjectsByType<MagneticStone>(all, any)) FxSparkle.Add(c, FxSparkle.CrystalColor);
         foreach (var c in Object.FindObjectsByType<TimeCrystal>(all, any)) FxSparkle.Add(c, FxSparkle.CrystalColor);
         foreach (var c in Object.FindObjectsByType<TimeCoin>(all, any)) FxSparkle.Add(c, FxSparkle.CoinColor);
@@ -64,13 +65,27 @@ public static class FxBootstrap
         foreach (var c in Object.FindObjectsByType<WildBoar>(all, any)) DeathPuff.Add(c);
     }
 
-    // The Steampunk factory lamps reuse TorchFlicker for a buzzing bulb; embers off a light bulb would look wrong.
-    // Spotted by their prefab name or the "Bulb" child SteampunkSceneBuilder gives them
-    static bool IsElectric(TorchFlicker torch)
+    // Every flame that shares TorchFlicker gets embers with its own look (bonfire, campfire, oven, furnace, torch,
+    // lantern), told apart by name. The Steampunk factory lamps also use TorchFlicker for a buzzing bulb, so electric
+    // lights (FactoryLamp prefab, or a "Bulb" child from SteampunkSceneBuilder) get none
+    public static bool FireKind(TorchFlicker torch, out FlameEmbers.Kind kind)
     {
-        return torch.name.StartsWith("FactoryLamp", System.StringComparison.Ordinal)
-            || torch.transform.Find("Bulb") != null;
+        string name = torch.name;
+        kind = FlameEmbers.Kind.Torch;
+        if (Has(name, "FactoryLamp") || torch.transform.Find("Bulb") != null) return false;
+        if (Has(name, "Bonfire")) kind = FlameEmbers.Kind.Bonfire;
+        else if (Has(name, "Campfire")) kind = FlameEmbers.Kind.Campfire;
+        else if (Has(name, "Oven")) kind = FlameEmbers.Kind.Oven;
+        else if (Has(name, "Furnace")) kind = FlameEmbers.Kind.Furnace;
+        else if (Has(name, "Lantern")) kind = FlameEmbers.Kind.Lantern;
+        return true;
     }
+
+    // True for the big camp fires, which get the extra flame and smoke effects too
+    public static bool IsBonfire(TorchFlicker torch) =>
+        FireKind(torch, out var kind) && (kind == FlameEmbers.Kind.Bonfire || kind == FlameEmbers.Kind.Campfire);
+
+    static bool Has(string name, string part) => name.IndexOf(part, System.StringComparison.OrdinalIgnoreCase) >= 0;
 
     static Transform Player()
     {
