@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9061064412907834750}
   - component: {fileID: 765135015576725132}
+  - component: {fileID: 7413483698348678407}
   m_Layer: 0
   m_Name: MedievalEssentials
   m_TagString: Untagged
@@ -98,7 +99,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.55, g: 0.7, b: 0.85, a: 1}
+  m_BackGroundColor: {r: 0.07, g: 0.09, b: 0.07, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -763,3 +764,23 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 9068593911186912044, guid: e630c9f7b80877143b18dc5613c1abf4, type: 3}
   m_PrefabInstance: {fileID: 8554334663943444638}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7413483698348678407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 607034712786471778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d4ebfab231e49a9a747b36aa1c3c727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OutOfBounds
+  material: {fileID: 2100000, guid: 3103150b0369d53488862642d1b83888, type: 2}
+  tint: {r: 0.55, g: 0.55, b: 0.55, a: 1}
+  height: -0.05
+  margin: 150
+  uvScale: 1
+  receiveShadows: 0
+  setCameraBackground: 1
+  background: {r: 0.07, g: 0.09, b: 0.07, a: 1}

@@ -200,6 +200,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8601737502893639589}
   - component: {fileID: 3249944568090898895}
+  - component: {fileID: 1283249495153896153}
   m_Layer: 0
   m_Name: LevelEssentials
   m_TagString: Untagged
@@ -719,3 +720,23 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9088695944815721937, guid: 6f559d45a14c2e64c80ff2ced247d828, type: 3}
   m_PrefabInstance: {fileID: 8317835410556095213}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1283249495153896153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8787543590892288561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d4ebfab231e49a9a747b36aa1c3c727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OutOfBounds
+  material: {fileID: 2100000, guid: ac21f692446594af0aecce7d42949703, type: 2}
+  tint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  height: -0.05
+  margin: 150
+  uvScale: 1
+  receiveShadows: 0
+  setCameraBackground: 1
+  background: {r: 0.12, g: 0.12, b: 0.16, a: 1}

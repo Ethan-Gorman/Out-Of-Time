@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7301285556304119289}
   - component: {fileID: 217772255740001828}
+  - component: {fileID: 2923542100996100403}
   m_Layer: 0
   m_Name: CavemanEssentials
   m_TagString: Untagged
@@ -99,7 +100,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.55, g: 0.7, b: 0.85, a: 1}
+  m_BackGroundColor: {r: 0.11, g: 0.09, b: 0.07, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -858,3 +859,28 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8630464851974608063, guid: 7e758ab58a925483880b07f89fdddc6a, type: 3}
   m_PrefabInstance: {fileID: 4371389688681775487}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2923542100996100403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 113195510455508492}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d4ebfab231e49a9a747b36aa1c3c727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OutOfBounds
+  material: {fileID: 2100000, guid: e953c7d5c2c9a4c4f9f5b338d6386e35, type: 2}
+  tint: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  height: -0.05
+  margin: 150
+  uvScale: 1
+  receiveShadows: 0
+  cutHole: 1
+  holeCenter: {x: 0, y: 0}
+  holeHalfSize: {x: 29, y: 14.6}
+  holeRoundness: 0.25
+  holeHeight: 0.02
+  setCameraBackground: 1
+  background: {r: 0.11, g: 0.09, b: 0.07, a: 1}
