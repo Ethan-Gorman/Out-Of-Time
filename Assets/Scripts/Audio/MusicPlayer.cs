@@ -9,6 +9,9 @@ public class EraTrack
     public Era era;
     public AudioClip music;
     public AudioClip drums;
+
+    // Low-shelf boost on both stems for this era, 0 = off
+    [Range(0f, 15f)] public float bassBoostDb;
 }
 
 // Plays the current era's music and drums stems in sync, and reacts to world time:
@@ -28,8 +31,12 @@ public class MusicPlayer : MonoBehaviour
 
     public float fadeTime = 0.5f;
 
-    public float frozenCutoff = 800f;
+    public float frozenCutoff = 2000f;
+    public float drumsFrozenCutoff = 800f;
     public float openCutoff = 22000f;
+
+    // Seconds for the muffle to catch up with world time (smooths the sweep)
+    public float cutoffLag = 0.6f;
 
     [Range(-10000f, 0f)] public float frozenReverb = -1200f;
 
@@ -40,9 +47,14 @@ public class MusicPlayer : MonoBehaviour
     AudioLowPassFilter musicFilter;
     AudioLowPassFilter drumsFilter;
     AudioReverbFilter musicReverb;
+    BassBoost musicBass;
+    BassBoost drumsBass;
 
     // 0..1 multiplier used for fading between eras
     float eraFade;
+
+    // World time as the filter hears it, lagging behind the real value
+    float filterScale = 1f;
 
     Coroutine switching;
 
@@ -79,6 +91,17 @@ public class MusicPlayer : MonoBehaviour
             musicReverb = musicSource.gameObject.AddComponent<AudioReverbFilter>();
         musicReverb.reverbPreset = AudioReverbPreset.User;
         musicReverb.decayTime = reverbDecay;
+
+        float bass = musicBass != null ? musicBass.gainDb : 0f;
+        musicBass = GetOrAdd<BassBoost>(musicSource.gameObject);
+        drumsBass = GetOrAdd<BassBoost>(drumsSource.gameObject);
+        musicBass.gainDb = drumsBass.gainDb = bass;
+    }
+
+    static T GetOrAdd<T>(GameObject go) where T : Component
+    {
+        var c = go.GetComponent<T>();
+        return c != null ? c : go.AddComponent<T>();
     }
 
     void OnDestroy()
@@ -121,6 +144,9 @@ public class MusicPlayer : MonoBehaviour
         musicSource.clip = track.music;
         drumsSource.clip = track.drums;
 
+        // Swapped while silent so the EQ change can't pop
+        musicBass.gainDb = drumsBass.gainDb = track.bassBoostDb;
+
         // Both clips must be loaded before scheduling, or one could start late and drift
         track.music.LoadAudioData();
         track.drums.LoadAudioData();
@@ -158,10 +184,14 @@ public class MusicPlayer : MonoBehaviour
         // Drums disappear as the world stops
         drumsSource.volume = volume * eraFade * boost * s;
 
-        // Exponential sweep sounds even to the ear: 800 Hz when frozen, fully open when moving
-        float cutoff = frozenCutoff * Mathf.Pow(openCutoff / frozenCutoff, s);
-        musicFilter.cutoffFrequency = cutoff;
-        drumsFilter.cutoffFrequency = cutoff;
+        // Unscaled so the sweep still moves while the world is frozen
+        filterScale = Mathf.Lerp(filterScale, s, 1f - Mathf.Exp(-Time.unscaledDeltaTime / Mathf.Max(cutoffLag, 0.001f)));
+
+        // Exponential sweep sounds even to the ear: frozenCutoff when frozen, fully open when moving
+        musicFilter.cutoffFrequency = frozenCutoff * Mathf.Pow(openCutoff / frozenCutoff, filterScale);
+
+        // Drums keep the original sweep: deeper, and following world time with no lag
+        drumsFilter.cutoffFrequency = drumsFrozenCutoff * Mathf.Pow(openCutoff / drumsFrozenCutoff, s);
 
         // Reverb swells in as the world stops, so the music hangs in the air
         musicReverb.room = Mathf.Lerp(frozenReverb, -10000f, s);
