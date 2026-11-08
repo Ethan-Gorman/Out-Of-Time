@@ -137,6 +137,8 @@ public class WildBoar : Interactable
 
         CavemanFx.Play(CavemanSfx.Sound.BoarHit);
         CavemanFx.Shake(health <= 0 ? 0.5f : 0.3f);
+        Vector3 hitAt = visual != null ? visual.position : transform.position;
+        HitFx.Fur(this, hitAt, player != null ? hitAt - player.position : Vector3.zero, health <= 0 ? 16 : 10);
         if (health <= 0)
             Die();
         else
