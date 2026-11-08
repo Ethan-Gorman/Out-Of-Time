@@ -23,6 +23,9 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField, Tooltip("Optional sprite sheet whose unflipped artwork faces left.")]
     Texture2D leftFacingSpriteSheet;
+    // More left-facing sheets, for looks whose clips use several (e.g. Caveman's idle, walk and death sheets).
+    // Every sheet the player uses must face the same way after flipping, or the sprite mirrors on start/stop
+    [SerializeField] Texture2D[] moreLeftFacingSpriteSheets;
     bool facingLeft;
 
     // The Animator on the same "Sprite" child, using AcPlayer (Stand / Run / Dead)
@@ -87,6 +90,8 @@ public class PlayerMovement : MonoBehaviour
         foreach (var col in GetComponents<Collider>())
             if (!col.isTrigger)
                 col.sharedMaterial = slippery;
+
+        Application.onBeforeRender += FaceWhileDisabled;
     }
 
     // Re-enabled after a knockback: carry on from the actual velocity instead of the old one
@@ -123,11 +128,41 @@ public class PlayerMovement : MonoBehaviour
 
     void LateUpdate()
     {
+        ApplyFacing();
+    }
+
+    // Clock and knockback disable this script, which stops LateUpdate, but the animator keeps
+    // swapping sprites (e.g. to a death sheet), so keep the facing right just before rendering
+    void FaceWhileDisabled()
+    {
+        if (!enabled)
+            ApplyFacing();
+    }
+
+    void OnDestroy()
+    {
+        Application.onBeforeRender -= FaceWhileDisabled;
+    }
+
+    void ApplyFacing()
+    {
         if (sprite == null)
             return;
-        bool artworkFacesLeft = leftFacingSpriteSheet != null && sprite.sprite != null
-            && sprite.sprite.texture == leftFacingSpriteSheet;
-        sprite.flipX = facingLeft ^ artworkFacesLeft;
+        sprite.flipX = facingLeft ^ ArtworkFacesLeft(sprite.sprite);
+    }
+
+    bool ArtworkFacesLeft(Sprite current)
+    {
+        if (current == null)
+            return false;
+        Texture2D sheet = current.texture;
+        if (leftFacingSpriteSheet != null && sheet == leftFacingSpriteSheet)
+            return true;
+        if (moreLeftFacingSpriteSheets != null)
+            foreach (var other in moreLeftFacingSpriteSheets)
+                if (other != null && sheet == other)
+                    return true;
+        return false;
     }
 
     // Plays the death animation. Called by Clock when time runs out

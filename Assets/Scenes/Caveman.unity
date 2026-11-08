@@ -278,6 +278,18 @@ PrefabInstance:
       propertyPath: leftFacingSpriteSheet
       value: 
       objectReference: {fileID: 2800000, guid: 261468e756ee241219f933e6b1f86d2a, type: 3}
+    - target: {fileID: 4237095533136348653, guid: 95dc4184e080ac044a9a0115e8a1ce08, type: 3}
+      propertyPath: moreLeftFacingSpriteSheets.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4237095533136348653, guid: 95dc4184e080ac044a9a0115e8a1ce08, type: 3}
+      propertyPath: moreLeftFacingSpriteSheets.Array.data[0]
+      value:
+      objectReference: {fileID: 2800000, guid: 17fb00e567c1441879ef08dfca476a8e, type: 3}
+    - target: {fileID: 4237095533136348653, guid: 95dc4184e080ac044a9a0115e8a1ce08, type: 3}
+      propertyPath: moreLeftFacingSpriteSheets.Array.data[1]
+      value:
+      objectReference: {fileID: 2800000, guid: 5fea4a1393434f0086bbfe146b7b84f5, type: 3}
     - target: {fileID: 5764572133052130206, guid: 95dc4184e080ac044a9a0115e8a1ce08, type: 3}
       propertyPath: m_Sprite
       value: 
