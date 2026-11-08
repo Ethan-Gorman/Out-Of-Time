@@ -19,6 +19,10 @@ public class PlayerMovement : MonoBehaviour
     // directly, so without this it slides up anything short of a vertical wall
     [Range(0f, 89f)] public float maxSlopeAngle = 45f;
 
+    // Steep contacts lower than this above the feet are small lips (floor seams, decal edges, low prop bases)
+    // the player should keep stepping over, so the slope limit ignores them
+    public float stepHeight = 0.3f;
+
     [Header("Sprint (hold Left Shift / left stick press)")]
     // Top speed multiplier while sprinting. The clock cost lives on TimeController
     public float sprintSpeedMultiplier = 1.5f;
@@ -55,6 +59,9 @@ public class PlayerMovement : MonoBehaviour
 
     // Ground-plane directions pointing out of surfaces too steep to walk up, touched last physics step
     readonly List<Vector3> steepNormals = new List<Vector3>();
+
+    // The player's own solid colliders, for finding where its feet are
+    Collider[] solids = new Collider[0];
 
     public Vector2 MoveInput => input;
 
@@ -95,9 +102,14 @@ public class PlayerMovement : MonoBehaviour
             frictionCombine = PhysicsMaterialCombine.Minimum,
             bounceCombine = PhysicsMaterialCombine.Minimum,
         };
+        var solidList = new List<Collider>();
         foreach (var col in GetComponents<Collider>())
             if (!col.isTrigger)
+            {
                 col.sharedMaterial = slippery;
+                solidList.Add(col);
+            }
+        solids = solidList.ToArray();
 
         Application.onBeforeRender += FaceWhileDisabled;
     }
@@ -218,11 +230,19 @@ public class PlayerMovement : MonoBehaviour
     void OnCollisionStay(Collision collision)
     {
         float minUp = Mathf.Cos(maxSlopeAngle * Mathf.Deg2Rad);
+        float feet = body.position.y;
+        foreach (var col in solids)
+            if (col != null)
+                feet = Mathf.Min(feet, col.bounds.min.y);
         for (int i = 0; i < collision.contactCount; i++)
         {
-            Vector3 normal = collision.GetContact(i).normal;
+            var contact = collision.GetContact(i);
+            Vector3 normal = contact.normal;
             // Walkable ground, or a ceiling/underside (pointing down): not a slope to climb
             if (normal.y >= minUp || normal.y < -0.01f)
+                continue;
+            // A small lip at the feet: let the player step over it as before
+            if (contact.point.y - feet < stepHeight)
                 continue;
             Vector3 outward = new Vector3(normal.x, 0f, normal.z);
             if (outward.sqrMagnitude > 0.0001f)
