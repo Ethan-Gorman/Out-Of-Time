@@ -86,6 +86,19 @@ Shader "Out Of Time/Sprite Lit"
                 input.positionOS.xy *= unity_SpriteProps.xy;
                 output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 output.positionHCS = TransformWorldToHClip(output.positionWS);
+
+                // Standing billboards lean back with the camera, so their top half sinks into whatever stands just
+                // behind their feet (a rock drew over the player's head). Depth-test them as an upright card at
+                // their own position instead. Only for standing sprites: flat ones (rugs) have their up axis
+                // along the ground and keep their real depth
+                float3 up = normalize(UNITY_MATRIX_M._m01_m11_m21);
+                if (up.y > 0.5)
+                {
+                    float3 upright = float3(output.positionWS.x, output.positionWS.y, UNITY_MATRIX_M._m23);
+                    float4 uprightHCS = TransformWorldToHClip(upright);
+                    output.positionHCS.z = uprightHCS.z / uprightHCS.w * output.positionHCS.w;
+                }
+
                 output.uv = input.uv;
                 output.color = input.color;
                 return output;

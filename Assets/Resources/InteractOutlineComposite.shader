@@ -34,11 +34,15 @@ Shader "Hidden/Out Of Time/Interact Outline Composite"
                 return o;
             }
 
-            half4 Mask(int2 p)
+            // Mask pixel: rgb = outline colour (black = the player), alpha = draw rank (far to near, from 1)
+            // with the line's strength in the fraction (x 0.9). 0 = empty
+            float4 Mask(int2 p)
             {
                 p = clamp(p, int2(0, 0), int2(_OOT_OutlineMaskSize.xy) - 1);
                 return LOAD_TEXTURE2D(_OOT_OutlineMask, p);
             }
+
+            bool IsOutlined(float4 m) { return m.a >= 1.0 && max(m.r, max(m.g, m.b)) > 0.01; }
 
             half4 Frag(Varyings input) : SV_Target
             {
@@ -49,16 +53,28 @@ Shader "Hidden/Out Of Time/Interact Outline Composite"
                 uv.y = 1.0 - uv.y;
                 int2 p = int2(uv * _OOT_OutlineMaskSize.xy);
 
-                if (Mask(p).a > 0.01)
+                float4 centre = Mask(p);
+                if (IsOutlined(centre))
                     discard;  // inside a silhouette: the line sits just outside it
 
-                half4 c = Mask(p + int2(1, 0));
-                half4 n = Mask(p + int2(-1, 0)); if (n.a > c.a) c = n;
-                n = Mask(p + int2(0, 1)); if (n.a > c.a) c = n;
-                n = Mask(p + int2(0, -1)); if (n.a > c.a) c = n;
-                if (c.a <= 0.01)
+                // The nearest outlined shape touching this pixel
+                int2 offsets[4] = { int2(1, 0), int2(-1, 0), int2(0, 1), int2(0, -1) };
+                float4 best = 0;
+                [unroll] for (int i = 0; i < 4; i++)
+                {
+                    float4 n = Mask(p + offsets[i]);
+                    if (IsOutlined(n) && n.a > best.a)
+                        best = n;
+                }
+                if (best.a < 1.0)
                     discard;
-                return c;
+
+                // The player covers this pixel and is nearer than that shape: the line goes behind them.
+                // A shape nearer than the player keeps its line drawn over them
+                if (centre.a >= 1.0 && floor(centre.a) > floor(best.a))
+                    discard;
+
+                return half4(best.rgb, frac(best.a) / 0.9);
             }
             ENDHLSL
         }

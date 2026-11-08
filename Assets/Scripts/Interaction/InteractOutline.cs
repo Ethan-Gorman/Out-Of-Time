@@ -96,23 +96,29 @@ public class InteractOutline : MonoBehaviour
 
     void CollectRenderers()
     {
+        renderers = VisibleRenderers(transform);
+    }
+
+    // The renderers that make up an object's visible shape (also used for the player, who hides outlines behind them)
+    static Renderer[] VisibleRenderers(Transform root)
+    {
         var list = new List<Renderer>();
-        foreach (var r in GetComponentsInChildren<Renderer>(true))
+        foreach (var r in root.GetComponentsInChildren<Renderer>(true))
         {
             // Shadow-only casters, ground shadows, particles, lines and text have no outline of their own
             if (r.shadowCastingMode == ShadowCastingMode.ShadowsOnly) continue;
-            if (IsGroundShadow(r)) continue;
+            if (IsGroundShadow(root, r)) continue;
             if (r is SpriteRenderer || r is MeshRenderer && r.TryGetComponent(out MeshFilter f) && f.sharedMesh != null)
                 list.Add(r);
         }
-        renderers = list.ToArray();
+        return list.ToArray();
     }
 
     // GroundShadow draws on its own object and on a "Shadow Mesh" child it creates
-    bool IsGroundShadow(Renderer r)
+    static bool IsGroundShadow(Transform root, Renderer r)
     {
         var shadow = r.GetComponentInParent<GroundShadow>(true);
-        return shadow != null && (shadow.transform != transform || r.transform == shadow.transform || r.name == "Shadow Mesh");
+        return shadow != null && (shadow.transform != root || r.transform == shadow.transform || r.name == "Shadow Mesh");
     }
 
     // Target colour and whether to show at all, from the object's state this frame
@@ -171,6 +177,10 @@ public class InteractOutline : MonoBehaviour
         static readonly int MaskSizeId = Shader.PropertyToID("_OOT_OutlineMaskSize");
         static readonly int MaskColorId = Shader.PropertyToID("_OOT_OutlineMaskColor");
 
+        readonly List<InteractOutline> drawList = new List<InteractOutline>();
+        Transform playerRoot;
+        Renderer[] playerRenderers;
+
         Material maskMaterial;
         Material compositeMaterial;
         Mesh triangle;
@@ -227,41 +237,60 @@ public class InteractOutline : MonoBehaviour
             if (mask == null || mask.width != width || mask.height != height)
             {
                 if (mask != null) mask.Release();
-                mask = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32)
+                // Half floats: alpha holds a draw rank above 1, see DrawShape
+                mask = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf)
                 {
                     name = "Interact Outline Mask", filterMode = FilterMode.Point, hideFlags = HideFlags.DontSave,
                 };
                 mask.Create();
             }
 
-            bool any = false;
-            cmd.Clear();
-            cmd.SetRenderTarget(mask);
-            cmd.ClearRenderTarget(false, true, Color.clear);
-            cmd.SetViewProjectionMatrices(cam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cam.projectionMatrix, true));
+            drawList.Clear();
             foreach (var outline in active)
             {
                 if (outline == null)
                     continue;
                 outline.Tick();
-                if (outline.shown <= 0f)
-                    continue;
-
-                Color c = outline.color;
-                c.a *= outline.shown;
-                cmd.SetGlobalColor(MaskColorId, c);
-                foreach (var r in outline.renderers)
-                {
-                    if (r == null || !r.enabled || !r.gameObject.activeInHierarchy)
-                        continue;
-                    int subMeshes = r is MeshRenderer && r.TryGetComponent(out MeshFilter f) && f.sharedMesh != null ? f.sharedMesh.subMeshCount : 1;
-                    for (int i = 0; i < subMeshes; i++)
-                        cmd.DrawRenderer(r, maskMaterial, i, 0);
-                    any = true;
-                }
+                if (outline.shown > 0f)
+                    drawList.Add(outline);
             }
-            if (!any)
+            if (drawList.Count == 0)
                 return;
+
+            // Far to near (up the screen is further away), so a nearer shape overwrites a further one in the mask
+            drawList.Sort((a, b) => b.transform.position.z.CompareTo(a.transform.position.z));
+
+            // The player hides outlines behind them: drawn into the mask as an occluder at their depth
+            var player = MedievalInteractor.Current;
+            if (player != null && player.transform != playerRoot)
+            {
+                playerRoot = player.transform;
+                playerRenderers = VisibleRenderers(playerRoot);
+            }
+            else if (player == null)
+            {
+                playerRoot = null;
+                playerRenderers = null;
+            }
+            bool playerDrawn = playerRenderers == null;
+            float playerZ = playerRoot != null ? playerRoot.position.z : 0f;
+
+            cmd.Clear();
+            cmd.SetRenderTarget(mask);
+            cmd.ClearRenderTarget(false, true, Color.clear);
+            cmd.SetViewProjectionMatrices(cam.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cam.projectionMatrix, true));
+            int rank = 0;
+            foreach (var outline in drawList)
+            {
+                if (!playerDrawn && outline.transform.position.z < playerZ)
+                {
+                    DrawShape(playerRenderers, Color.black, ++rank, 0f);
+                    playerDrawn = true;
+                }
+                DrawShape(outline.renderers, outline.color, ++rank, outline.color.a * outline.shown);
+            }
+            if (!playerDrawn)
+                DrawShape(playerRenderers, Color.black, ++rank, 0f);
 
             Graphics.ExecuteCommandBuffer(cmd);
             Shader.SetGlobalTexture(MaskId, mask);
@@ -275,6 +304,25 @@ public class InteractOutline : MonoBehaviour
                 receiveShadows = false,
             };
             Graphics.RenderMesh(rp, triangle, 0, Matrix4x4.identity);
+        }
+
+        // Mask pixel: rgb = outline colour (black = the player, who only hides lines), alpha = draw rank (1, 2, ...
+        // far to near) plus the line's strength in the fraction, so the composite can tell which of two shapes
+        // touching a pixel is nearer
+        void DrawShape(Renderer[] shape, Color color, int rank, float strength)
+        {
+            if (shape == null)
+                return;
+            color.a = rank + Mathf.Clamp01(strength) * 0.9f;
+            cmd.SetGlobalColor(MaskColorId, color);
+            foreach (var r in shape)
+            {
+                if (r == null || !r.enabled || !r.gameObject.activeInHierarchy)
+                    continue;
+                int subMeshes = r is MeshRenderer && r.TryGetComponent(out MeshFilter f) && f.sharedMesh != null ? f.sharedMesh.subMeshCount : 1;
+                for (int i = 0; i < subMeshes; i++)
+                    cmd.DrawRenderer(r, maskMaterial, i, 0);
+            }
         }
     }
 }
