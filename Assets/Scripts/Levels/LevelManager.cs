@@ -2,9 +2,6 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-#if UNITY_EDITOR
-using UnityEditor.SceneManagement;
-#endif
 
 // Tracks the current era and handles all scene loading.
 // Part of the Persistent prefab (nested in LevelEssentials). It survives scene loads,
@@ -70,6 +67,9 @@ public class LevelManager : MonoBehaviour
     {
         LevelFinished = false;
         loadingNext = false;
+        // A next-level wait from the old scene must not fire in this one
+        // (e.g. a restart or era jump started while it was counting down)
+        StopAllCoroutines();
         RefreshEra();
         RunTimer.EnterLevel(scene.name);
     }
@@ -93,22 +93,15 @@ public class LevelManager : MonoBehaviour
         EraChanged?.Invoke(CurrentEra);
     }
 
-    // Reloads the current scene. Called by Clock when time runs out.
+    // Reloads the current scene (with a fade, ScreenFader). Called by Clock when time runs out.
     // Also works in the Editor for scenes not in Build Settings yet
     public void RestartLevel()
     {
         var scene = SceneManager.GetActiveScene();
         if (scene.buildIndex >= 0)
-        {
-            SceneManager.LoadScene(scene.buildIndex);
-            return;
-        }
-
-#if UNITY_EDITOR
-        EditorSceneManager.LoadSceneInPlayMode(scene.path, new LoadSceneParameters(LoadSceneMode.Single));
-#else
-        SceneManager.LoadScene(scene.name);
-#endif
+            ScreenFader.LoadScene(scene.buildIndex);
+        else
+            ScreenFader.LoadScene(scene.path);
     }
 
     // The level's objective is complete: freezes the Clock and records the level's time (RunTimer).
@@ -152,7 +145,7 @@ public class LevelManager : MonoBehaviour
     {
         // Realtime, so it doesn't depend on the world moving
         yield return new WaitForSecondsRealtime(resultsTime);
-        SceneManager.LoadScene(index);
+        ScreenFader.LoadScene(index);
     }
 
     static bool HasNextLevel()

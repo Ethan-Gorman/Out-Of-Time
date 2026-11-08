@@ -102,7 +102,7 @@ public class PresenterCheats : MonoBehaviour
         for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
             if (System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i)) == EraScenes[era])
             {
-                SceneManager.LoadScene(i);
+                ScreenFader.LoadScene(i);
                 return;
             }
         Toast($"No {EraScenes[era]} scene in Build Settings yet");
@@ -118,7 +118,7 @@ public class PresenterCheats : MonoBehaviour
             return;
         }
         if (LevelManager.Instance != null) LevelManager.Instance.CompleteLevel();
-        else SceneManager.LoadScene(next);
+        else ScreenFader.LoadScene(next);
         Toast("Travelling to the next era...");
     }
 

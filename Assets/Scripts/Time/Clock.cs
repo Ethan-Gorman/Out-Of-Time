@@ -123,6 +123,6 @@ public class Clock : MonoBehaviour
         if (LevelManager.Instance != null)
             LevelManager.Instance.RestartLevel();
         else
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            ScreenFader.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
