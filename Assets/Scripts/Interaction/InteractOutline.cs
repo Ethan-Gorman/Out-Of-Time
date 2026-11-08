@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 //  - Used but still in the world (pulled lever, crafted axe stone): grey
 //  - Enemies (boar, skeletons, clockwork guards): red until they die
 //  - Crystals (magnet stones, the Time Crystal): cyan
+//  - Time Coins: bright coin gold
 //  - Villagers only while they are the selected one; things that break or die lose it once used
 // Added automatically to every such object when a scene loads, so nothing needs setting up per prefab.
 // How it draws: each frame the outlined renderers are drawn flat into a mask at the low render resolution
@@ -21,6 +22,7 @@ public class InteractOutline : MonoBehaviour
     static readonly Color Used = new Color(0.55f, 0.55f, 0.6f, 0.7f);
     static readonly Color Enemy = new Color(0.95f, 0.2f, 0.15f, 0.9f);
     static readonly Color Crystal = new Color(0.27f, 0.85f, 0.84f, 0.9f);
+    static readonly Color Coin = new Color(1f, 0.84f, 0.22f, 0.95f);
 
     const float FadeSpeed = 8f;
 
@@ -64,6 +66,7 @@ public class InteractOutline : MonoBehaviour
         foreach (var c in Object.FindObjectsByType<TimeCrystal>(all, any)) Add(c);
         foreach (var c in Object.FindObjectsByType<SteampunkItem>(all, any)) Add(c);
         foreach (var c in Object.FindObjectsByType<PickupItem>(all, any)) Add(c);
+        foreach (var c in Object.FindObjectsByType<TimeCoin>(all, any)) Add(c);
         foreach (var c in Object.FindObjectsByType<SkeletonEnemy>(all, any)) Add(c);
         foreach (var c in Object.FindObjectsByType<ClockworkGuard>(all, any)) Add(c);
     }
@@ -135,6 +138,8 @@ public class InteractOutline : MonoBehaviour
             // Pickups vanish when taken; crystals match their own cyan glow
             if (GetComponent<MagneticStone>() != null || GetComponent<TimeCrystal>() != null)
                 target = Crystal;
+            else if (GetComponent<TimeCoin>() != null)
+                target = Coin;
             return true;
         }
 
