@@ -33,6 +33,12 @@ public class CameraFollow : MonoBehaviour
     void Awake()
     {
         cam = GetComponent<Camera>();
+
+        // Sprites sort by how far up the screen their feet are (world z), the top-down rule: something further
+        // back is always drawn behind, whatever its height (the default sorts tall sprites in front by mistake).
+        // Standing sprites share one sorting order, so this decides between them
+        cam.transparencySortMode = TransparencySortMode.CustomAxis;
+        cam.transparencySortAxis = Vector3.forward;
     }
 
     // LateUpdate runs after the player has moved this frame, so the camera doesn't jitter

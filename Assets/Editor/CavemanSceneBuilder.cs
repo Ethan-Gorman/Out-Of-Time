@@ -89,7 +89,9 @@ public static class CavemanSceneBuilder
         AssetDatabase.DeleteAsset(Sprites + "/Tree.png"); AssetDatabase.DeleteAsset(Sprites + "/Rock.png"); AssetDatabase.DeleteAsset(Sprites + "/MagneticStone.png");
         AssetDatabase.DeleteAsset(Mats + "/Grass.mat"); AssetDatabase.DeleteAsset(Textures + "/Grass32.png");
         bramble = Sprite("Bramble", 32, 32, BramblePixels);
-        firewoodSprite = Sprite("FirewoodStack", 40, 30, FirewoodPixels);
+        // Hand-drawn 40x40 art replaces the generated stack; only draw one if it is missing
+        firewoodSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Sprites + "/FirewoodStack.png");
+        if (firewoodSprite == null) firewoodSprite = Sprite("FirewoodStack", 40, 30, FirewoodPixels);
         logSprite = Sprite("CampLog", 32, 24, LogPixels);
         potSprite = Sprite("ClayPot", 32, 32, PotPixels);
         basketSprite = Sprite("WovenBasket", 32, 28, BasketPixels);
@@ -370,7 +372,7 @@ public static class CavemanSceneBuilder
         var trigger = root.AddComponent<SphereCollider>(); trigger.isTrigger = true; trigger.center = new Vector3(0, 0.7f, 0); trigger.radius = 1.5f;
         var breakable = root.AddComponent<Breakable>(); breakable.resource = CavemanLevel.Resource.Wood; breakable.amount = 1; breakable.health = 3; breakable.destructionStyle = Breakable.DestructionStyle.Crumble;
         var prompt = new SerializedObject(breakable); prompt.FindProperty("prompt").stringValue = "Take firewood"; prompt.ApplyModifiedPropertiesWithoutUndo();
-        breakable.visual = Billboard(root.transform, firewoodSprite, new Vector3(0, 0.94f, 0));
+        breakable.visual = Billboard(root.transform, firewoodSprite, new Vector3(0, firewoodSprite.bounds.extents.y, 0));
         var solid = new GameObject("Solid Collider"); solid.transform.SetParent(root.transform, false);
         var box = solid.AddComponent<BoxCollider>(); box.center = new Vector3(0, 0.6f, 0); box.size = new Vector3(2.2f, 1.2f, 0.9f);
         Save(root, Prefabs + "/CavemanFirewood.prefab");
@@ -417,7 +419,7 @@ public static class CavemanSceneBuilder
 
         var campfire = new GameObject("CavemanCampfire");
         var visual = new GameObject("Sprite"); visual.transform.SetParent(campfire.transform, false); visual.transform.localPosition = new Vector3(0, 0.75f, 0);
-        var renderer = visual.AddComponent<SpriteRenderer>(); renderer.sprite = fireFrames[0]; renderer.sharedMaterial = spriteMat; renderer.sortingOrder = 2; visual.AddComponent<Billboard>();
+        var renderer = visual.AddComponent<SpriteRenderer>(); renderer.sprite = fireFrames[0]; renderer.sharedMaterial = spriteMat; renderer.sortingOrder = 0; visual.AddComponent<Billboard>();
         var animation = campfire.AddComponent<CavemanSpriteAnimation>(); animation.sprite = renderer; animation.frames = fireFrames; animation.framesPerSecond = 7f;
         var lightObject = new GameObject("Fire Light"); lightObject.transform.SetParent(campfire.transform, false); lightObject.transform.localPosition = new Vector3(0, 0.7f, 0);
         var fireLight = lightObject.AddComponent<Light>(); fireLight.type = LightType.Point; fireLight.color = Hex("FF9B42"); fireLight.intensity = 1.6f; fireLight.range = 5f;
@@ -427,7 +429,7 @@ public static class CavemanSceneBuilder
     static void SpriteProp(string name, Sprite art, float scale)
     {
         var root = new GameObject(name); var visual = new GameObject("Sprite"); visual.transform.SetParent(root.transform, false); visual.transform.localPosition = new Vector3(0, 0.38f, 0); visual.transform.localScale = Vector3.one * scale;
-        var renderer = visual.AddComponent<SpriteRenderer>(); renderer.sprite = art; renderer.sharedMaterial = spriteMat; renderer.sortingOrder = 1; visual.AddComponent<Billboard>();
+        var renderer = visual.AddComponent<SpriteRenderer>(); renderer.sprite = art; renderer.sharedMaterial = spriteMat; renderer.sortingOrder = 0; visual.AddComponent<Billboard>(); SpriteShadows.Add(visual);
         Save(root, Prefabs + "/" + name + ".prefab");
     }
 
@@ -436,7 +438,7 @@ public static class CavemanSceneBuilder
         var go = new GameObject("WildBoar"); var body = go.AddComponent<Rigidbody>(); body.isKinematic = true; body.constraints = RigidbodyConstraints.FreezeRotation;
         var hit = go.AddComponent<CapsuleCollider>(); hit.isTrigger = true; hit.center = new Vector3(0, 0.55f, 0); hit.radius = 0.78f; hit.height = 1.25f;
         var art = new GameObject("Sprite"); art.transform.SetParent(go.transform, false); art.transform.localPosition = new Vector3(0, 0.75f, 0); art.transform.localScale = Vector3.one * 0.58f;
-        var renderer = art.AddComponent<SpriteRenderer>(); renderer.sprite = boar[0]; renderer.sharedMaterial = spriteMat; renderer.sortingOrder = 2; art.AddComponent<Billboard>();
+        var renderer = art.AddComponent<SpriteRenderer>(); renderer.sprite = boar[0]; renderer.sharedMaterial = spriteMat; renderer.sortingOrder = 0; art.AddComponent<Billboard>(); SpriteShadows.Add(art);
         var animal = go.AddComponent<WildBoar>(); animal.visual = art.transform; animal.sprite = renderer; animal.walkFrames = boar; Save(go, Prefabs + "/WildBoar.prefab");
     }
 
@@ -521,7 +523,7 @@ public static class CavemanSceneBuilder
         go.transform.SetParent(parent, false); go.transform.localPosition = pos; go.transform.localScale = scale; go.GetComponent<Renderer>().sharedMaterial = mat; return go;
     }
     static void Bump(Transform parent, Vector3 pos, Vector3 scale) { var go = GameObject.CreatePrimitive(PrimitiveType.Sphere); go.name = "Cave Rock"; go.transform.SetParent(parent, false); go.transform.localPosition = pos; go.transform.localScale = scale; go.GetComponent<Renderer>().sharedMaterial = stoneMat; }
-    static Transform Billboard(Transform parent, Sprite art, Vector3 pos) { var go = new GameObject("Visual"); go.transform.SetParent(parent, false); go.transform.localPosition = pos; var r = go.AddComponent<SpriteRenderer>(); r.sprite = art; r.sharedMaterial = spriteMat; r.sortingOrder = 1; go.AddComponent<Billboard>(); return go.transform; }
+    static Transform Billboard(Transform parent, Sprite art, Vector3 pos) { var go = new GameObject("Visual"); go.transform.SetParent(parent, false); go.transform.localPosition = pos; var r = go.AddComponent<SpriteRenderer>(); r.sprite = art; r.sharedMaterial = spriteMat; r.sortingOrder = 0; go.AddComponent<Billboard>(); SpriteShadows.Add(go); return go.transform; }
     static Transform Find(Transform parent, string name) { foreach (Transform child in parent) { if (child.name == name) return child; Transform result = Find(child, name); if (result != null) return result; } return null; }
     static void Save(GameObject root, string path) { PrefabUtility.SaveAsPrefabAsset(root, path); UnityEngine.Object.DestroyImmediate(root); }
 }

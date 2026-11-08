@@ -28,6 +28,10 @@ public class CaveNpc : Interactable
     public float puffRise = 0.7f;
     public Color puffColor = new Color(0.96f, 0.9f, 0.76f);
 
+    // Solid body so the player can't walk through: at least this wide. Made at runtime if the villager has none
+    public float solidRadius = 0.55f;
+    const float SolidHeight = 6f;  // taller than any jump, like every other blocker in the cave
+
     struct Puff
     {
         public Transform transform;
@@ -47,6 +51,7 @@ public class CaveNpc : Interactable
 
     public override string Prompt => talkPrompt;
     public override bool CanInteract => lines != null && lines.Length > 0;
+    public override bool OutlineOnlyInRange => true;
 
     void Start()
     {
@@ -54,6 +59,7 @@ public class CaveNpc : Interactable
             cam = Camera.main.transform;
         if (sprite != null)
             puffMaterial = sprite.sharedMaterial;
+        EnsureSolid();
         if (orbitRadius > 0f)
         {
             Vector3 offset = transform.localPosition - orbitCenter;
@@ -63,6 +69,30 @@ public class CaveNpc : Interactable
         frameIndex = frames != null && frames.Length > 0 ? Random.Range(0, frames.Length) : 0;
         puffTimer = puffInterval * 0.5f;
         ApplyFrame();
+    }
+
+    void EnsureSolid()
+    {
+        CapsuleCollider solid = null;
+        foreach (var c in GetComponentsInChildren<CapsuleCollider>(true))
+            if (!c.isTrigger) { solid = c; break; }
+
+        if (solid == null)
+        {
+            var go = new GameObject("Solid");
+            go.transform.SetParent(transform, false);
+            solid = go.AddComponent<CapsuleCollider>();
+            solid.height = SolidHeight;
+            solid.center = new Vector3(0f, SolidHeight * 0.5f, 0f);
+        }
+        solid.radius = Mathf.Max(solid.radius, solidRadius);
+
+        // A villager that walks needs a kinematic body, so its moving collider pushes the player cleanly
+        if (orbitRadius > 0f && !TryGetComponent(out Rigidbody _))
+        {
+            var body = gameObject.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+        }
     }
 
     public override void Interact(MedievalInteractor interactor)

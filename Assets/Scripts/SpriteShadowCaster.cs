@@ -12,6 +12,9 @@ public class SpriteShadowCaster : MonoBehaviour
 
     public Light sun;
 
+    // On for props, which scale their sprite object (villagers scale their root, which the caster already follows)
+    public bool matchSpriteScale;
+
     static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
     static readonly int BaseMapStId = Shader.PropertyToID("_BaseMap_ST");
     static Mesh quad;
@@ -63,6 +66,8 @@ public class SpriteShadowCaster : MonoBehaviour
 
         // Size and position: the sprite's real size, standing on the character's feet
         Vector2 size = s.rect.size / s.pixelsPerUnit;
+        if (matchSpriteScale)
+            size = Vector2.Scale(size, transform.localScale);
         Vector3 feet = caster.parent.position;
         caster.position = feet;
         caster.localScale = new Vector3(size.x, size.y, 1f);

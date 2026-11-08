@@ -124,6 +124,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 266475152281232994}
   - component: {fileID: 4757922773523684921}
   - component: {fileID: 7271679302396363239}
   - component: {fileID: 1535981424469446002}
@@ -196,7 +197,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: a57f4ef66d9899247aa1a19e039c41f8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -223,3 +224,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Billboard
   lockUpright: 0
   pixelSnap: 1
+--- !u!114 &266475152281232994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7289688784015342682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61ae07adadc8a44228c25ab53fcc50e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpriteShadowCaster
+  shadowMaterial: {fileID: 2100000, guid: c88e2106ae17a4221bc50cb4d4b8147d, type: 2}
+  sun: {fileID: 0}
+  matchSpriteScale: 1

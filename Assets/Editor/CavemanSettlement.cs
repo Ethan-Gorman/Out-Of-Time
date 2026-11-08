@@ -239,7 +239,7 @@ public static class CavemanSettlement
         var fireFrames = Enumerable.Range(0, 4).Select(f => Art("Bonfire_" + (f + 1), 48, 60, t => BonfirePixels(t, f))).ToArray();
         var fire = new GameObject("Bonfire");
         fire.transform.SetParent(parent, false); fire.transform.localPosition = Fire;
-        var art = SpriteChild(fire.transform, fireFrames[0], 1f, 2);
+        var art = SpriteChild(fire.transform, fireFrames[0], 1f, 0);
         var anim = fire.AddComponent<CavemanSpriteAnimation>(); anim.sprite = art; anim.frames = fireFrames; anim.framesPerSecond = 8f;
         AddLight(fire.transform, new Vector3(0, 1.1f, 0), Hex("FF9B42"), 4f, 9f, 0.18f);
         Solid(fire.transform, 0.75f, 1f);
@@ -270,7 +270,6 @@ public static class CavemanSettlement
             "You have no fur! Are you cold?", "I'm the fastest in the whole cave! Catch me!");
         child.transform.localScale = Vector3.one * 0.72f;
         child.orbitCenter = Fire; child.orbitRadius = 3.6f; child.orbitSpeed = 0.55f;
-        UnityEngine.Object.DestroyImmediate(child.transform.Find("Solid").gameObject);
 
         Villager(parent, "Painter", new Vector3(-6.2f, 0, 10.0f), Look.Painter, Frames("Painter", Look.Painter, Pose.Paint, 2), 2f,
             "I paint the great hunt. Beat the boar, and I'll paint you too.", "Red from the earth, black from the fire. Don't touch, still wet!");
@@ -361,25 +360,25 @@ public static class CavemanSettlement
             Part(PrimitiveType.Sphere, "Base Stone", root.transform, new Vector3(-0.3f, 0.08f, -0.25f), new Vector3(0.42f, 0.25f, 0.4f), stone);
             var c = new GameObject("Charm"); c.transform.SetParent(root.transform, false);
             c.transform.position = at + new Vector3(0, 1.0f, -0.42f);
-            var r = c.AddComponent<SpriteRenderer>(); r.sprite = charm; r.sharedMaterial = spriteMat; r.sortingOrder = 2; c.AddComponent<Billboard>();
+            var r = c.AddComponent<SpriteRenderer>(); r.sprite = charm; r.sharedMaterial = spriteMat; r.sortingOrder = 0; c.AddComponent<Billboard>();
             Solid(root.transform, 0.36f, h);
         }
     }
 
     static void Torches(Transform parent)
     {
-        var frames = Enumerable.Range(0, 4).Select(f => Art("Torch_" + (f + 1), 12, 36, t => TorchPixels(t, f))).ToArray();
         Vector3[] spots =
         {
             new Vector3(-19.2f, 0, 2.5f), new Vector3(-19.2f, 0, -2.5f), new Vector3(-9f, 0, 1.8f), new Vector3(-1f, 0, -1.8f),
             new Vector3(5f, 0, 1.8f), new Vector3(10.1f, 0, 2.7f), new Vector3(10.1f, 0, -2.7f), new Vector3(-11.6f, 0, 8.6f),
             new Vector3(-21.4f, 0, 9.4f), new Vector3(1.2f, 0, 8.4f), new Vector3(-22.4f, 0, -5.4f), new Vector3(-5.8f, 0, -8.4f), new Vector3(5.2f, 0, -8f),
         };
+        var model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/prefabs/Medieval/Torch.prefab");
         foreach (var at in spots)
         {
-            var torch = Prop(parent, "Torch", at, frames[0], 1f, 0.15f);
-            var anim = torch.AddComponent<CavemanSpriteAnimation>(); anim.sprite = torch.GetComponentInChildren<SpriteRenderer>(); anim.frames = frames; anim.framesPerSecond = 8f;
-            AddLight(torch.transform, new Vector3(0, 2.1f, 0), Hex("FF9E47"), 2.6f, 6.5f, 0.22f);
+            var torch = new GameObject("Torch"); torch.transform.SetParent(parent, false); torch.transform.localPosition = at;
+            var look = (GameObject)PrefabUtility.InstantiatePrefab(model); look.name = "Torch3D"; look.transform.SetParent(torch.transform, false);
+            Block(torch.transform, 0.5625f, 0.5625f);
         }
     }
 
@@ -463,7 +462,7 @@ public static class CavemanSettlement
     static GameObject Prop(Transform parent, string name, Vector3 at, Sprite art, float scale, float solidRadius)
     {
         var root = new GameObject(name); root.transform.SetParent(parent, false); root.transform.localPosition = at;
-        SpriteChild(root.transform, art, scale, 1);
+        SpriteShadows.Add(SpriteChild(root.transform, art, scale, 0).gameObject);
         if (solidRadius >= 0f)
         {
             float width = Mathf.Max(solidRadius * 2f, art.bounds.size.x * scale * 0.75f, 0.5f);
@@ -591,10 +590,10 @@ public static class CavemanSettlement
     {
         var root = new GameObject(name); root.transform.SetParent(parent, false); root.transform.localPosition = at;
         var talk = root.AddComponent<SphereCollider>(); talk.isTrigger = true; talk.center = new Vector3(0, 0.7f, 0); talk.radius = 1.5f;
-        var sprite = SpriteChild(root.transform, frames[0], 1f, 2);
+        var sprite = SpriteChild(root.transform, frames[0], 1f, 0);
         var shadow = sprite.gameObject.AddComponent<SpriteShadowCaster>(); shadow.shadowMaterial = shadowCasterMat;
         var npc = root.AddComponent<CaveNpc>(); npc.sprite = sprite; npc.frames = frames; npc.framesPerSecond = fps; npc.lines = lines;
-        Solid(root.transform, 0.35f, 1.4f);
+        Solid(root.transform, 0.55f, 1.4f);
         return npc;
     }
 
