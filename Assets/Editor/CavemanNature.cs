@@ -171,6 +171,9 @@ public static class CavemanNature
             m.shader = source.shader;
             m.CopyPropertiesFromMaterial(source);
         }
+        // Always the toon cutout shader: a stock Lit base would look glossy, then change when OccluderFader cuts it
+        var cutout = Shader.Find("Out Of Time/Lit Cutout");
+        if (cutout != null && m.shader != cutout) m.shader = cutout;
         m.DisableKeyword("_EMISSION");
         if (texture != null) m.SetTexture("_BaseMap", texture);
         m.SetTextureScale("_BaseMap", Vector2.one * tiling);
