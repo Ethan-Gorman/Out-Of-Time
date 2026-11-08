@@ -82,6 +82,8 @@ Shader "Out Of Time/Sprite Lit"
             Varyings vert(Attributes input)
             {
                 Varyings output;
+                // SpriteRenderer supplies the facing signs; custom shaders must apply them.
+                input.positionOS.xy *= unity_SpriteProps.xy;
                 output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 output.positionHCS = TransformWorldToHClip(output.positionWS);
                 output.uv = input.uv;

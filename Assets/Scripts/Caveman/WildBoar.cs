@@ -14,6 +14,8 @@ public class WildBoar : Interactable
     public float hitPause = 0.35f;
     public float knockbackSpeed = 5f;
     public float flashTime = 0.18f;
+    [SerializeField, Tooltip("Distance from the player at which the attack prompt is available.")]
+    float attackRange = 2f;
 
     [Header("Art")]
     public Transform visual;
@@ -25,6 +27,7 @@ public class WildBoar : Interactable
 
     Rigidbody body;
     Transform player;
+    MedievalInteractor playerInteractor;
     float pauseLeft;
     float animationTimer;
     int animationFrame;
@@ -39,7 +42,7 @@ public class WildBoar : Interactable
 
     bool HasAxe => CavemanLevel.Instance != null && CavemanLevel.Instance.HasAxe;
 
-    public override string Prompt => HasAxe ? "Attack wild boar" : "Wild boar";
+    public override string Prompt => "attack boar";
     public override bool CanInteract => !dead;
 
     void Awake()
@@ -48,7 +51,10 @@ public class WildBoar : Interactable
         body.isKinematic = true;
         var playerObject = GameObject.FindWithTag("Player");
         if (playerObject != null)
+        {
             player = playerObject.transform;
+            playerInteractor = playerObject.GetComponent<MedievalInteractor>();
+        }
     }
 
     public override void Interact(MedievalInteractor interactor)
@@ -124,6 +130,14 @@ public class WildBoar : Interactable
 
     void Update()
     {
+        if (playerInteractor != null)
+        {
+            if (!dead && player != null && Flat(player.position - transform.position).sqrMagnitude <= attackRange * attackRange)
+                playerInteractor.Enter(this);
+            else
+                playerInteractor.Exit(this);
+        }
+
         if (!dead || deathTime < 0.5f)
             UpdateFlash();
         if (dead)
@@ -152,8 +166,18 @@ public class WildBoar : Interactable
         }
     }
 
-    void OnTriggerEnter(Collider other) => TouchPlayer(other);
+    protected override void OnTriggerEnter(Collider other) => TouchPlayer(other);
+
+    // Attack range is checked above; leaving the smaller contact trigger must not hide it.
+    protected override void OnTriggerExit(Collider other) { }
+
     void OnTriggerStay(Collider other) => TouchPlayer(other);
+
+    void OnDisable()
+    {
+        if (playerInteractor != null)
+            playerInteractor.Exit(this);
+    }
 
     void TouchPlayer(Collider other)
     {

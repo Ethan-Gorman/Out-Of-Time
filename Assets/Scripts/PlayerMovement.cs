@@ -21,6 +21,10 @@ public class PlayerMovement : MonoBehaviour
     // The billboard sprite on the child "Sprite" object, flipped to face the move direction
     public SpriteRenderer sprite;
 
+    [SerializeField, Tooltip("Optional sprite sheet whose unflipped artwork faces left.")]
+    Texture2D leftFacingSpriteSheet;
+    bool facingLeft;
+
     // The Animator on the same "Sprite" child, using AcPlayer (Stand / Run / Dead)
     public Animator animator;
 
@@ -100,9 +104,9 @@ public class PlayerMovement : MonoBehaviour
         input = move != null ? move.ReadValue<Vector2>() : Vector2.zero;
         IsSprinting = sprint != null && sprint.IsPressed() && input.sqrMagnitude > 0.01f;
 
-        // Only flip when moving sideways, so the sprite keeps its last facing when moving up/down or idle
-        if (sprite != null && Mathf.Abs(input.x) > 0.01f)
-            sprite.flipX = input.x < 0f;
+        // Keep the last horizontal facing when moving up/down or idle.
+        if (Mathf.Abs(input.x) > 0.01f)
+            facingLeft = input.x < 0f;
 
         // AcPlayer switches Stand -> Run when Speed > 0.01, and back when it drops below.
         // Uses actual speed so the run animation lasts until the player has slowed to a stop
@@ -115,6 +119,15 @@ public class PlayerMovement : MonoBehaviour
             float worldTime = Mathf.Max(WorldTime.Scale, slowestAnimationSpeed);
             animator.speed = Mathf.Lerp(1f, sprintSpeedMultiplier, SprintAmount) * worldTime;
         }
+    }
+
+    void LateUpdate()
+    {
+        if (sprite == null)
+            return;
+        bool artworkFacesLeft = leftFacingSpriteSheet != null && sprite.sprite != null
+            && sprite.sprite.texture == leftFacingSpriteSheet;
+        sprite.flipX = facingLeft ^ artworkFacesLeft;
     }
 
     // Plays the death animation. Called by Clock when time runs out
