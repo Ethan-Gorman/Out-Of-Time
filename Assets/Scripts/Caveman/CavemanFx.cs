@@ -195,8 +195,9 @@ public class CavemanFx : MonoBehaviour
         text.color = color;
         text.raycastTarget = false;
         var outline = go.AddComponent<Outline>();
-        outline.effectColor = new Color(0f, 0f, 0f, 0.85f);
-        outline.effectDistance = new Vector2(2f, -2f);
+        // The era's outline colour; 1 px on this 540-high canvas is 2 px at 1080, matching the HUD
+        outline.effectColor = UITheme.Current.textOutline;
+        outline.effectDistance = new Vector2(1f, -1f);
 
         fx.texts.Add(new FloatingText
         {

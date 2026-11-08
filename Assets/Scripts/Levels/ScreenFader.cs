@@ -82,8 +82,11 @@ public class ScreenFader : MonoBehaviour
         eraText = new GameObject("Era", typeof(RectTransform)).AddComponent<Text>();
         eraText.transform.SetParent(transform, false);
         eraText.alignment = TextAnchor.MiddleCenter;
-        eraText.fontSize = 96;
+        // Same size, colour and outline as the MedievalUI banner, so the era title looks the same in both places
+        eraText.fontSize = UILayout.Display;
         eraText.color = new Color(0.95f, 0.9f, 0.75f);
+        var outline = eraText.gameObject.AddComponent<Outline>();
+        outline.effectDistance = UILayout.TextOutline;
         eraText.raycastTarget = false;
         eraText.horizontalOverflow = HorizontalWrapMode.Overflow;
         eraText.verticalOverflow = VerticalWrapMode.Overflow;
@@ -213,6 +216,11 @@ public class ScreenFader : MonoBehaviour
         hasEra = true;
         lastEra = info.era;
         FindFont();
+        var theme = UITheme.For(info.era);
+        eraText.color = theme.accent;
+        var outline = eraText.GetComponent<Outline>();
+        if (outline != null)
+            outline.effectColor = theme.textOutline;
         eraText.text = info.era == Era.Future ? "THE FUTURE" : $"{info.era.ToString().ToUpperInvariant()} ERA";
         return true;
     }

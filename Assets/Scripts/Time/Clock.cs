@@ -22,7 +22,7 @@ public class Clock : MonoBehaviour
         TimeChanged = null;
     }
 
-    // Time on the clock when the level starts
+    // Time on the clock when the level starts, unless the level's LevelInfo sets its own (Clock Seconds)
     public float startSeconds = 60f;
 
     [Range(0f, 1f)] public float idleDrain = 0.1f;
@@ -37,18 +37,24 @@ public class Clock : MonoBehaviour
     public float Remaining { get; private set; }
     public bool IsOut => Remaining <= 0f;
 
+    // Seconds this level started with (LevelInfo's Clock Seconds, or startSeconds). ClockUI's face drains against it
+    public float StartSeconds { get; private set; }
+
     // True once the level's objective is complete: the clock stops and can't gain or lose time
     public bool IsFrozen { get; private set; }
 
     void Awake()
     {
         Instance = this;
-        Remaining = startSeconds;
+        // A level can set its own starting time on its LevelInfo; 0 keeps startSeconds
+        var info = FindAnyObjectByType<LevelInfo>();
+        StartSeconds = info != null && info.clockSeconds > 0f ? info.clockSeconds : startSeconds;
+        Remaining = StartSeconds;
     }
 
     void Update()
     {
-        if (IsOut || IsFrozen || PresenterCheats.HackerMode) // Hacker Mode (presenter cheat): no drain
+        if (IsOut || IsFrozen || CheatMenu.HackerMode) // Hacker Mode (presenter cheat): no drain
             return;
 
         // Drain at world speed, but never slower than idleDrain,
@@ -72,7 +78,7 @@ public class Clock : MonoBehaviour
     // Call when the player gets hit (PlayerDamage does this)
     public void RemoveTime(float seconds)
     {
-        if (IsOut || IsFrozen || seconds <= 0f || PresenterCheats.HackerMode)
+        if (IsOut || IsFrozen || seconds <= 0f || CheatMenu.HackerMode)
             return;
 
         Remaining -= seconds;

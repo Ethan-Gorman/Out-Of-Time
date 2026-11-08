@@ -139,7 +139,7 @@ public class LevelManager : MonoBehaviour
     }
 
     // Stops a next-era load that is still waiting out the results. Called on every scene load,
-    // and by PresenterCheats before it loads a scene itself
+    // and by CheatMenu before it loads a scene itself
     public void CancelPendingLoad()
     {
         if (loadingNext != null)

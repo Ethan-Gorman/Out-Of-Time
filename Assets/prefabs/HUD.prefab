@@ -36,9 +36,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -40}
-  m_SizeDelta: {x: 600, y: 100}
-  m_Pivot: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 216, y: -96}
+  m_SizeDelta: {x: 288, y: 96}
+  m_Pivot: {x: 0.25, y: 0.5}
 --- !u!222 &2362294193150585707
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -61,7 +61,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -69,16 +69,16 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 79f40c979e4a44c3f997fcf0ac799299, type: 3}
-    m_FontSize: 72
-    m_FontStyle: 1
+    m_FontSize: 56
+    m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 72
-    m_Alignment: 0
+    m_MaxSize: 56
+    m_Alignment: 3
     m_AlignByGeometry: 0
     m_RichText: 1
-    m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_HorizontalOverflow: 1
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: 1:00.0
 --- !u!114 &6287137133383168601
@@ -94,7 +94,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
   m_EffectColor: {r: 0, g: 0, b: 0, a: 1}
-  m_EffectDistance: {x: 3, y: -3}
+  m_EffectDistance: {x: 2, y: -2}
   m_UseGraphicAlpha: 1
 --- !u!114 &6721451641849134404
 MonoBehaviour:
@@ -109,18 +109,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClockUI
   warningSeconds: 10
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  warningColor: {r: 1, g: 0.3, b: 0.3, a: 1}
   multiplierSize: 0.55
-  multiplierFullColor: {r: 1, g: 1, b: 1, a: 0.6}
-  multiplierSlowColor: {r: 0.45, g: 0.8, b: 1, a: 1}
-  multiplierSprintColor: {r: 1, g: 0.65, b: 0.25, a: 1}
-  lossColor: {r: 1, g: 0.15, b: 0.15, a: 1}
-  gainColor: {r: 0.4, g: 1, b: 0.5, a: 1}
   flashTime: 0.5
   popupTime: 0.9
-  popupDrift: 60
-  popupSize: 0.7
+  popupDrift: 32
+  popupFontSize: 36
+  resultsFontSize: 32
 --- !u!1 &8758837836486221302
 GameObject:
   m_ObjectHideFlags: 0

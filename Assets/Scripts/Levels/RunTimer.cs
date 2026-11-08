@@ -17,7 +17,7 @@ public static class RunTimer
         public float clockLeft;   // seconds left on the Clock when it was finished: this is the score
         public float bestLeft;    // most time left this level has been finished with (this one, if it's a new best)
         public bool newBest;
-        public bool cheated;      // presenter cheats were used on it, so no best was saved
+        public bool cheated;      // cheat menu were used on it, so no best was saved
     }
 
     // True from the first level loading until the last level is finished
@@ -94,7 +94,7 @@ public static class RunTimer
             RunClockLeft = 0f;
             Deaths = 0;
             // Hacker Mode left on from before counts straight away
-            RunCheated = PresenterCheats.HackerMode;
+            RunCheated = CheatMenu.HackerMode;
             runStart = now;
             startLevel = level;
             HasBestRun = PlayerPrefs.HasKey(BestRunKey(level));
@@ -119,7 +119,7 @@ public static class RunTimer
         Deaths++;
     }
 
-    // Called by PresenterCheats whenever a cheat is used, so skipped or assisted times don't become bests.
+    // Called by CheatMenu whenever a cheat is used, so skipped or assisted times don't become bests.
     // The split still shows; the flag clears when a fresh run starts
     public static void MarkCheated()
     {
@@ -144,7 +144,7 @@ public static class RunTimer
         };
 
         // Hacker Mode can stay on across levels, so it counts even without a fresh MarkCheated
-        if (PresenterCheats.HackerMode)
+        if (CheatMenu.HackerMode)
             MarkCheated();
         result.cheated = levelCheated;
 
@@ -194,7 +194,7 @@ public static class RunTimer
         levelDeaths = 0;
         levelFinished = false;
         // Hacker Mode still on from the last level counts, even if it's turned off before this one ends
-        levelCheated = PresenterCheats.HackerMode;
+        levelCheated = CheatMenu.HackerMode;
     }
 
     static string BestLevelKey(string level) => "OOT.BestLeft.Level." + level;

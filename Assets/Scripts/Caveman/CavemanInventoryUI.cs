@@ -1,26 +1,57 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// The Caveman resource line (wood, stone, axe, magnets) on a panel under the clock.
+// The panel is built at runtime and wears the era's UITheme
 public class CavemanInventoryUI : MonoBehaviour
 {
     public Text inventoryText;
-    public float popScale = 1.25f;
+    // Kept small so the popped text stays inside its panel
+    public float popScale = 1.08f;
     public float popTime = 0.25f;
 
     float popLeft;
     string lastText;
+    Image panel;
+
+    void Awake()
+    {
+        if (inventoryText == null)
+            return;
+
+        // Just before the text in the hierarchy, so it draws behind it
+        var go = new GameObject("Inventory Panel", typeof(RectTransform), typeof(Image));
+        var rect = (RectTransform)go.transform;
+        rect.SetParent(inventoryText.transform.parent, false);
+        rect.SetSiblingIndex(inventoryText.transform.GetSiblingIndex());
+        UILayout.TopLeft(rect, new Vector2(UILayout.Margin, 160f), new Vector2(UILayout.PanelWidth, 64f));
+        panel = go.GetComponent<Image>();
+        panel.type = Image.Type.Sliced;
+        panel.pixelsPerUnitMultiplier = UISprites.PixelMultiplier;
+        panel.raycastTarget = false;
+    }
 
     void OnEnable()
     {
         CavemanLevel.InventoryChanged += Refresh;
+        UITheme.Changed += ApplyTheme;
+        ApplyTheme(UITheme.Current);
         Refresh();
     }
 
     void OnDisable()
     {
         CavemanLevel.InventoryChanged -= Refresh;
+        UITheme.Changed -= ApplyTheme;
         if (inventoryText != null)
             inventoryText.rectTransform.localScale = Vector3.one;
+    }
+
+    void ApplyTheme(UITheme t)
+    {
+        if (panel != null)
+            panel.sprite = UISprites.Panel(t);
+        UIThemer.StyleText(inventoryText, t.text);
     }
 
     void Refresh()
@@ -46,7 +77,10 @@ public class CavemanInventoryUI : MonoBehaviour
 
         // Hidden once the level is finished, so the clock's results have the corner to themselves
         var clock = Clock.Instance;
-        inventoryText.enabled = clock == null || !clock.IsFrozen;
+        bool show = clock == null || !clock.IsFrozen;
+        inventoryText.enabled = show;
+        if (panel != null)
+            panel.enabled = show;
 
         if (popLeft <= 0f)
             return;

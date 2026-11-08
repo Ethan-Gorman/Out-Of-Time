@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-// Presenter cheats for demoing the game quickly (game jam presentation). Creates itself on startup, no setup needed.
+// Cheat menu for demoing the game quickly (game jam presentation). Creates itself on startup, no setup needed.
 // Active in the Editor and in Development builds; in a normal build, type "hacker" to unlock them.
 //
 //   F1-F4  jump to Caveman / Medieval / Steampunk / Future
@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 //   T      +30 seconds on the clock
 //   H      Hacker Mode: the clock stops draining and nothing can hurt you
 //   `      show / hide this list
-public class PresenterCheats : MonoBehaviour
+public class CheatMenu : MonoBehaviour
 {
     // Read by Clock (no drain, no time loss) and PlayerDamage (no hits)
     public static bool HackerMode { get; private set; }
@@ -26,17 +26,19 @@ public class PresenterCheats : MonoBehaviour
     int poiIndex;
     string toast;
     float toastUntil;
-    GUIStyle style, boxStyle;
+    GUIStyle style, rightStyle, boxStyle;
+    Era styledEra;
+    Font uiFont;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Create()
     {
         HackerMode = false;
-        if (FindAnyObjectByType<PresenterCheats>() != null)
+        if (FindAnyObjectByType<CheatMenu>() != null)
             return;
-        var go = new GameObject("PresenterCheats");
+        var go = new GameObject("CheatMenu");
         DontDestroyOnLoad(go);
-        go.AddComponent<PresenterCheats>();
+        go.AddComponent<CheatMenu>();
     }
 
     void Awake()
@@ -48,7 +50,13 @@ public class PresenterCheats : MonoBehaviour
     // Domain reload is off (fast Play mode), so static events must be unsubscribed or they pile up between sessions
     void OnDestroy() => SceneManager.sceneLoaded -= OnSceneLoaded;
 
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode) => poiIndex = 0;
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        poiIndex = 0;
+        // Try again for the HUD font if the last scene had no clock to borrow it from
+        if (style != null && style.font == null)
+            style = null;
+    }
 
     void OnEnable()
     {
@@ -313,42 +321,78 @@ public class PresenterCheats : MonoBehaviour
     {
         if (!unlocked)
             return;
-        if (style == null)
+
+        // Restyled when the era changes, so the cheats wear the same panels and colours as the HUD
+        var theme = UITheme.Current;
+        if (style == null || styledEra != theme.era)
         {
-            style = new GUIStyle(GUI.skin.label) { fontSize = Mathf.Max(14, Screen.height / 45), richText = true };
-            style.normal.textColor = new Color(0.95f, 0.9f, 0.75f);
-            boxStyle = new GUIStyle(GUI.skin.box);
+            style = new GUIStyle(GUI.skin.label) { fontSize = UILayout.Small, richText = true, alignment = TextAnchor.MiddleLeft, wordWrap = false };
+            style.font = FindUIFont();
+            style.normal.textColor = theme.text;
+            rightStyle = new GUIStyle(style) { alignment = TextAnchor.MiddleRight };
+            boxStyle = new GUIStyle(GUI.skin.box) { border = new RectOffset(12, 12, 12, 12) };
+            boxStyle.normal.background = UISprites.PanelTexture(theme, 4);
+            styledEra = theme.era;
         }
-        float line = style.fontSize * 1.5f;
 
+        // Laid out in the HUD's 1920x1080 reference pixels, scaled the way its CanvasScaler does (match 0.5)
+        float s = Mathf.Sqrt(Screen.width / 1920f * Screen.height / 1080f);
+        GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1f));
+        float w = Screen.width / s, h = Screen.height / s;
+        const float Line = 32f;
+
+        // Translucent panels, so the game stays visible behind the menu and toasts
+        GUI.backgroundColor = new Color(1f, 1f, 1f, PanelAlpha);
+        string positive = ColorUtility.ToHtmlStringRGBA(theme.positive);
+
+        // Bottom-right, clear of the dialogue box
         if (HackerMode)
-            GUI.Label(new Rect(Screen.width - 260, Screen.height - line * 1.5f, 250, line), "<color=#7CFF7C>HACKER MODE</color>", style);
+            GUI.Label(new Rect(w - UILayout.Margin - 400f, h - UILayout.Margin - Line, 400f, Line), $"<color=#{positive}>HACKER MODE</color>", rightStyle);
 
+        // Bottom-centre, between the interact prompt and the banner
         if (toast != null && Time.unscaledTime < toastUntil)
         {
             var size = style.CalcSize(new GUIContent(toast));
-            var r = new Rect((Screen.width - size.x) * 0.5f - 12, Screen.height * 0.18f, size.x + 24, line + 8);
+            float width = Mathf.Min(size.x + UILayout.PadX * 2f, 1200f);
+            var r = new Rect((w - width) * 0.5f, h - 288f - 48f, width, 48f);
             GUI.Box(r, GUIContent.none, boxStyle);
-            GUI.Label(new Rect(r.x + 12, r.y + 4, size.x, line), toast, style);
+            GUI.Label(new Rect(r.x + UILayout.PadX, r.y, r.width - UILayout.PadX * 2f, r.height), toast, style);
         }
 
         if (!showList)
             return;
         string[] rows =
         {
-            "<b>PRESENTER CHEATS</b>",
+            $"<color=#{ColorUtility.ToHtmlStringRGBA(theme.accent)}>CHEAT MENU</color>",
             "F1-F4   Caveman / Medieval / Steampunk / Future",
             "N       next era",
             "O       complete next objective",
             "P       teleport to next point of interest",
             "T       +30 seconds",
-            "H       Hacker Mode " + (HackerMode ? "<color=#7CFF7C>(on)</color>" : "(off)"),
+            "H       Hacker Mode " + (HackerMode ? $"<color=#{positive}>(on)</color>" : "(off)"),
             "`       hide this list",
         };
-        var box = new Rect(20, Screen.height * 0.3f, style.fontSize * 24, line * rows.Length + 16);
-        GUI.Box(box, GUIContent.none, boxStyle);
+        // Top-left, under the clock and its results panel
+        var box = new Rect(UILayout.Margin, 328f, 576f, Line * rows.Length + UILayout.PadY * 2f);
         GUI.Box(box, GUIContent.none, boxStyle);
         for (int i = 0; i < rows.Length; i++)
-            GUI.Label(new Rect(box.x + 12, box.y + 8 + i * line, box.width - 24, line), rows[i], style);
+            GUI.Label(new Rect(box.x + UILayout.PadX, box.y + UILayout.PadY + i * Line, box.width - UILayout.PadX * 2f, Line), rows[i], style);
+    }
+
+    const float PanelAlpha = 0.75f;
+
+    // The UI font (VT323) is set on the HUD's clock rather than loaded from Resources, so borrow it, as ScreenFader does
+    Font FindUIFont()
+    {
+        if (uiFont != null)
+            return uiFont;
+        var clock = FindAnyObjectByType<ClockUI>();
+        if (clock != null)
+        {
+            var text = clock.GetComponent<UnityEngine.UI.Text>();
+            if (text != null)
+                uiFont = text.font;
+        }
+        return uiFont;
     }
 }

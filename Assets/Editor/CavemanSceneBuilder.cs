@@ -337,10 +337,10 @@ public static class CavemanSceneBuilder
         var canvas = root.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 5;
         var scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = 0.5f; // same as the HUD
         var label = new GameObject("Inventory Text", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text), typeof(Outline)); label.transform.SetParent(root.transform, false);
-        var rect = label.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = new Vector2(0, 1); rect.pivot = new Vector2(0, 1); rect.anchoredPosition = new Vector2(44, -260); rect.sizeDelta = new Vector2(900, 42); // below the HUD clock and its popups/results (which end around y = -240)
+        var rect = label.GetComponent<RectTransform>(); rect.anchorMin = rect.anchorMax = new Vector2(0, 1); rect.pivot = new Vector2(0.5f, 0.5f); rect.anchoredPosition = new Vector2(348, -192); rect.sizeDelta = new Vector2(552, 64); // inside the runtime Inventory Panel (48..648 x 160..224) under the clock plate, so it pops from its centre
         var text = label.GetComponent<Text>(); text.font = AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/VT323/VT323-Regular.ttf"); text.fontSize = 32; text.color = Hex("E9E8BF"); text.alignment = TextAnchor.MiddleLeft; text.horizontalOverflow = HorizontalWrapMode.Overflow; text.verticalOverflow = VerticalWrapMode.Overflow; text.raycastTarget = false;
         text.text = "WOOD 0   STONE 0   AXE --   MAGNETS 0/3"; var outline = label.GetComponent<Outline>(); outline.effectColor = new Color(0.06f, 0.08f, 0.04f, 0.95f); outline.effectDistance = new Vector2(2, -2);
-        root.GetComponent<CavemanInventoryUI>().inventoryText = text; Save(root, Prefabs + "/CavemanInventory.prefab");
+        var inventoryUI = root.GetComponent<CavemanInventoryUI>(); inventoryUI.inventoryText = text; inventoryUI.popScale = 1.08f; Save(root, Prefabs + "/CavemanInventory.prefab");
     }
 
     static void MakeEssentials()

@@ -9,6 +9,9 @@ public class LevelInfo : MonoBehaviour
 {
     public Era era = Era.Caveman;
 
+    // Seconds on the clock when this level starts. 0 uses the Clock's Start Seconds (GameManager prefab)
+    [Min(0f)] public float clockSeconds = 0f;
+
     // Editor only: changing Era in the Inspector during Play mode switches era straight away, for testing
     void OnValidate()
     {
