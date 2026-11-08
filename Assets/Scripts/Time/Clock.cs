@@ -48,7 +48,7 @@ public class Clock : MonoBehaviour
 
     void Update()
     {
-        if (IsOut || IsFrozen)
+        if (IsOut || IsFrozen || PresenterCheats.HackerMode) // Hacker Mode (presenter cheat): no drain
             return;
 
         // Drain at world speed, but never slower than idleDrain,
@@ -72,7 +72,7 @@ public class Clock : MonoBehaviour
     // Call when the player gets hit (PlayerDamage does this)
     public void RemoveTime(float seconds)
     {
-        if (IsOut || IsFrozen || seconds <= 0f)
+        if (IsOut || IsFrozen || seconds <= 0f || PresenterCheats.HackerMode)
             return;
 
         Remaining -= seconds;

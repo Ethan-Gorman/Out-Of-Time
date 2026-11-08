@@ -57,7 +57,7 @@ public class PlayerDamage : MonoBehaviour
     // seconds < 0 uses secondsPerHit
     public bool Hit(Vector3 sourcePosition, float seconds = -1f)
     {
-        if (IsOut || IsInvulnerable)
+        if (IsOut || IsInvulnerable || PresenterCheats.HackerMode) // Hacker Mode (presenter cheat): no hits
             return false;
 
         invulnerableUntil = Time.time + invulnerableTime;

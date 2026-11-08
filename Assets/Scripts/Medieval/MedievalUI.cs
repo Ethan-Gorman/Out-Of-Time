@@ -30,9 +30,20 @@ public class MedievalUI : MonoBehaviour
     readonly Queue<string> lines = new Queue<string>();
     float lineTimer;
 
+    // The objective panel's designed height, and how tall its text area is at that height.
+    // Longer objectives (two lines, long words) grow the panel so the text never spills past the border
+    float objectiveBaseHeight = -1f;
+    float objectiveBaseTextHeight;
+
     void Awake()
     {
         Instance = this;
+        if (objectiveRoot != null && objectiveText != null)
+        {
+            objectiveBaseHeight = ((RectTransform)objectiveRoot.transform).sizeDelta.y;
+            // The text is stretched across the panel, so its height is the panel's minus its insets
+            objectiveBaseTextHeight = objectiveBaseHeight + objectiveText.rectTransform.sizeDelta.y;
+        }
         SetActive(promptRoot, false);
         SetActive(dialogueRoot, false);
         SetActive(bannerRoot, false);
@@ -50,6 +61,17 @@ public class MedievalUI : MonoBehaviour
         SetActive(objectiveRoot, !string.IsNullOrEmpty(text));
         if (objectiveText != null)
             objectiveText.text = text;
+        FitObjective();
+    }
+
+    // Grows (or shrinks back) the objective panel to fit its text
+    void FitObjective()
+    {
+        if (objectiveBaseHeight < 0f || objectiveText == null || string.IsNullOrEmpty(objectiveText.text))
+            return;
+        var panel = (RectTransform)objectiveRoot.transform;
+        float extra = Mathf.Max(0f, objectiveText.preferredHeight - objectiveBaseTextHeight);
+        panel.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, objectiveBaseHeight + Mathf.Ceil(extra) + (extra > 0f ? 6f : 0f));
     }
 
     // Shows lines of dialogue one after another, a few seconds each.

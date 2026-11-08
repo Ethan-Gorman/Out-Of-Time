@@ -196,6 +196,22 @@ Assets/
 └── Undead Survivor/             Asset Store pack (git-ignored, import locally)
 ```
 
+## Presenter cheats
+
+For demos: `Scripts/Presenter/PresenterCheats.cs` creates itself on startup, so it needs no setup. The cheats are on in the Editor and in Development builds. In a normal build, type `hacker` to unlock them.
+
+| Key | Cheat |
+|---|---|
+| **F1–F4** | Jump to Caveman / Medieval / Steampunk / Future |
+| **N** | Finish this level and travel to the next era |
+| **O** | Complete the next objective (the story, dialogue and objectives still play) |
+| **P** | Teleport to the next point of interest |
+| **T** | +30 seconds |
+| **H** | **Hacker Mode**: the clock stops draining and nothing hurts you |
+| **`** | Show or hide the cheat list |
+
+Hacker Mode is checked in `Clock` and `PlayerDamage`. Add new eras' objective steps to `PresenterCheats.CompleteObjective`.
+
 ## Working with AI coding agents
 
 The Caveman and Steampunk eras were built with Claude Code driving the open Unity Editor. If you use an agent (Claude Code, Copilot, ChatGPT...), point it at this README first, then at these tools.
