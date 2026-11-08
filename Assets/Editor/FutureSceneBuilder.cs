@@ -55,6 +55,8 @@ public static class FutureSceneBuilder
     [MenuItem("Tools/Out Of Time/Build Future Era")]
     public static void Build()
     {
+        // NewScene throws in Play mode, halfway through the build
+        if (EditorApplication.isPlayingOrWillChangePlaymode) { Debug.LogError("Leave Play mode before building Future."); return; }
         Scene original = SceneManager.GetActiveScene();
         if (original.isDirty) { Debug.LogError("Save or close the dirty scene before building Future."); return; }
         Folders();

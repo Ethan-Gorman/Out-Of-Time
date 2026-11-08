@@ -10,6 +10,50 @@ public static class HitFx
     static readonly Color FurLight = new Color(0.62f, 0.43f, 0.27f, 1f);
     static readonly Color FurDark = new Color(0.36f, 0.23f, 0.14f, 1f);
 
+    static readonly Color SparkHot = new Color(1f, 1f, 0.85f, 1f);
+    static readonly Color SparkBlue = new Color(0.45f, 0.9f, 1f, 1f);
+    static readonly Color SparkEnd = new Color(0.2f, 0.5f, 1f, 0f);
+
+    // Machines (Future robots): a white flash and electric sparks spraying out and falling
+    public static void Sparks(Component target, Vector3 position, int count = 16)
+    {
+        if (!FxParticles.OnScreen(position))
+            return;
+        Material material = FxParticles.MaterialOf(target);
+
+        FxParticles.Spawn(new FxParticles.Spec
+        {
+            shape = FxParticles.Shape.Star,
+            position = position,
+            life = 0.2f,
+            startColor = SparkHot,
+            endColor = SparkEnd,
+            startSize = 2f,
+            endSize = 3f,
+            material = material,
+        });
+
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 dir = Random.insideUnitSphere;
+            dir.y = Mathf.Abs(dir.y) + 0.3f;
+            FxParticles.Spawn(new FxParticles.Spec
+            {
+                shape = Random.value < 0.25f ? FxParticles.Shape.Star : FxParticles.Shape.Dot,
+                position = position + Random.insideUnitSphere * 0.1f,
+                velocity = dir.normalized * Random.Range(2f, 4.5f),
+                life = Random.Range(0.3f, 0.6f),
+                startColor = Random.value < 0.5f ? SparkHot : SparkBlue,
+                endColor = SparkEnd,
+                startSize = 1f,
+                endSize = 0.7f,
+                gravity = 9f,
+                drag = 1f,
+                material = material,
+            });
+        }
+    }
+
     // away: the direction the hit pushes the target (from the attacker towards it)
     public static void Fur(Component target, Vector3 position, Vector3 away, int count = 10)
     {

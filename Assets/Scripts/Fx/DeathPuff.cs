@@ -46,7 +46,11 @@ public class DeathPuff : MonoBehaviour
             return;
         // Once only: nothing left to watch
         enabled = false;
-        Puff();
+        // Future enemies are robots (skeleton and guard brains in a robot body): they short out in sparks
+        if (LevelManager.Instance != null && LevelManager.Instance.CurrentEra == Era.Future)
+            HitFx.Sparks(this, transform.position + Vector3.up * 0.7f);
+        else
+            Puff();
     }
 
     void Puff()
