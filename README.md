@@ -82,7 +82,7 @@ The intended objective sequence is:
 
 1. Take wood from the tribe's firewood stacks and break rocks for stone.
 2. Craft a Stone Axe at the flat knapping stone using **2 wood and 2 stone**.
-3. Defeat the wild boar with the axe. Its death restores **30 seconds** to the clock.
+3. Defeat the wild boar with the axe. Its death restores **10 seconds** to the clock.
 4. Clear the cave brambles and collect all **3 magnetic stones**.
 5. Return to the time machine, repair its compass, and board it to trigger the Medieval transition.
 
@@ -101,7 +101,7 @@ Objective sequence:
 3. **Gear 2:** take the oil can by the mechanic's workbench and oil the seized gear. Gear 2 turns once Gear 1 drives it.
 4. **Gear 3** starts by itself: the brake lifts and the connecting rod on Gear 2 drags it round. The lift gets power.
 5. Cross the steam-vent wall and the conveyor (jump the cargo, dodge the stamping presses) to reach the lift at the right end, and ride it up.
-6. First floor: vents, swinging crane hooks, a narrow catwalk, then the **Clockwork Guard** (patrols, chases, winds up a spinning blade attack; jump on its head to beat it).
+6. First floor: vents, swinging crane hooks, a narrow catwalk, then the **Clockwork Guard** (patrols, chases, winds up a spinning blade attack; jump on its head to beat it for **+10 seconds**).
 7. Repair the time machine's Chrono Regulator, then board it. It loads the next scene only if a scene named `Future` comes next in Build Settings; otherwise it shows a "Future Era, coming soon" banner.
 
 Optional: a **pocket watch** in the furnace corner (+15 s via `PickupItem`). Six factory workers (`CaveNpc`) give hints.

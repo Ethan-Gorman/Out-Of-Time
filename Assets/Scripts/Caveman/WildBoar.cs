@@ -387,7 +387,7 @@ public class WildBoar : Interactable
             CavemanLevel.Instance.OnBoarKilled();
     }
 
-    string BoarRewardText() => CavemanLevel.Instance != null ? Mathf.RoundToInt(CavemanLevel.Instance.boarReward).ToString() : "30";
+    string BoarRewardText() => CavemanLevel.Instance != null ? Mathf.RoundToInt(CavemanLevel.Instance.boarReward).ToString() : "10";
 
     // Flashes red after each hit
     void UpdateFlash()

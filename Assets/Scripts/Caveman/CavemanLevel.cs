@@ -17,7 +17,7 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
     public int axeWoodCost = 2;
     public int axeStoneCost = 2;
     public int magneticStonesNeeded = 3;
-    public float boarReward = 30f;
+    public float boarReward = 10f;
     public float introDelay = 0.6f;
 
     [TextArea] public string[] introLines =
