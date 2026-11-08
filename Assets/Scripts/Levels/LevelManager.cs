@@ -102,7 +102,7 @@ public class LevelManager : MonoBehaviour
             ScreenFader.LoadScene(scene.path);
     }
 
-    // The level's objective is complete: freezes the Clock and records the level's time (RunTimer).
+    // The level's objective is complete: freezes the Clock and records the time left on it (RunTimer).
     // The last era built so far (EraOrder) also ends the run.
     // Safe to call more than once. CompleteLevel calls it too
     public void FinishLevel() => FinishLevel(false);
@@ -130,7 +130,7 @@ public class LevelManager : MonoBehaviour
         FinishLevel();
         if (!HasNextLevel())
         {
-            Debug.Log($"[LevelManager] Final era complete. Run time {RunTimer.Format(RunTimer.RunSeconds)}");
+            Debug.Log($"[LevelManager] Final era complete. Time left {RunTimer.Format(RunTimer.RunClockLeft)}, run time {RunTimer.Format(RunTimer.RunSeconds)}");
             return;
         }
 

@@ -36,6 +36,8 @@ public class ClockworkGuard : MonoBehaviour
     public float stompHeight = 0.7f;
     public float stompBounce = 4.5f;
     public float pauseAfterHit = 1f;
+    // Seconds given back on the clock when it's defeated (ClockUI shows the "+10s")
+    public float killReward = 10f;
 
     [Header("Body")]
     public float bodyRadius = 0.38f;
@@ -286,6 +288,8 @@ public class ClockworkGuard : MonoBehaviour
         if (IsDead)
             return;
         IsDead = true;
+        if (killReward > 0f && Clock.Instance != null)
+            Clock.Instance.AddTime(killReward);
         if (blades != null) blades.gameObject.SetActive(false);
         if (sprite != null) sprite.color = baseColor * 0.6f;
         if (deathSparks != null) deathSparks.Burst();

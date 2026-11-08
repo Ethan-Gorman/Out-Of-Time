@@ -47,7 +47,7 @@ MonoBehaviour:
   axeWoodCost: 2
   axeStoneCost: 2
   magneticStonesNeeded: 3
-  boarReward: 30
+  boarReward: 10
   introDelay: 0.6
   introLines:
   - The time machine's temporal compass is cracked. It can't find its way through time.

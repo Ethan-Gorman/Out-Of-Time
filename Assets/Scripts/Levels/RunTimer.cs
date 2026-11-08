@@ -1,8 +1,10 @@
 using UnityEngine;
 
-// Scores the whole run in real time, like a speedrun timer: from the first level loading to the last level's
-// objective being completed. Retries (running out of time) count, and so does standing still.
-// Each level gets a split (real time from first entering it to finishing it), and best times are saved.
+// Scores the run by the time left on the Clock when each level is finished (bonus time from kills and
+// pickups included): the more left, the better. A level's best is the most time it was finished with;
+// a run's best is the most time left added up over its levels.
+// Also keeps real-time splits, like a speedrun timer, shown alongside: from the first level loading to the
+// last level's objective being completed. Retries (running out of time) count, and so does standing still.
 // Plain static class, nothing to place in a scene: LevelManager and Clock report to it.
 public static class RunTimer
 {
@@ -12,10 +14,10 @@ public static class RunTimer
         public string level;
         public float seconds;     // real time spent on this level, retries included
         public int deaths;        // times the clock ran out on this level
-        public float clockLeft;   // seconds left on the Clock when it was finished
-        public float bestSeconds; // best split for this level (this one, if it's a new best)
+        public float clockLeft;   // seconds left on the Clock when it was finished: this is the score
+        public float bestLeft;    // most time left this level has been finished with (this one, if it's a new best)
         public bool newBest;
-        public bool cheated;      // presenter cheats were used on it, so no best time was saved
+        public bool cheated;      // presenter cheats were used on it, so no best was saved
     }
 
     // True from the first level loading until the last level is finished
@@ -27,8 +29,12 @@ public static class RunTimer
     // The level just finished (null until one is)
     public static LevelResult LastLevel { get; private set; }
 
-    // Best full run from the same starting level (0 if there is none yet), and whether this run beat it
-    public static float BestRunSeconds { get; private set; }
+    // Clock time left added up over the levels finished this run (the run's score)
+    public static float RunClockLeft { get; private set; }
+
+    // Best full run's time left from the same starting level, whether there is one yet, and whether this run beat it
+    public static float BestRunLeft { get; private set; }
+    public static bool HasBestRun { get; private set; }
     public static bool NewBestRun { get; private set; }
 
     public static int Deaths { get; private set; }
@@ -58,7 +64,9 @@ public static class RunTimer
         Running = false;
         Complete = false;
         LastLevel = null;
-        BestRunSeconds = 0f;
+        RunClockLeft = 0f;
+        BestRunLeft = 0f;
+        HasBestRun = false;
         NewBestRun = false;
         Deaths = 0;
         RunCheated = false;
@@ -83,12 +91,14 @@ public static class RunTimer
             Complete = false;
             NewBestRun = false;
             LastLevel = null;
+            RunClockLeft = 0f;
             Deaths = 0;
             // Hacker Mode left on from before counts straight away
             RunCheated = PresenterCheats.HackerMode;
             runStart = now;
             startLevel = level;
-            BestRunSeconds = PlayerPrefs.GetFloat(BestRunKey(level), 0f);
+            HasBestRun = PlayerPrefs.HasKey(BestRunKey(level));
+            BestRunLeft = PlayerPrefs.GetFloat(BestRunKey(level), 0f);
             StartLevel(level, now);
             return;
         }
@@ -138,13 +148,16 @@ public static class RunTimer
             MarkCheated();
         result.cheated = levelCheated;
 
-        string key = "OOT.Best.Level." + currentLevel;
+        // More time left is better. New keys, so old real-time bests are never compared as time left
+        string key = BestLevelKey(currentLevel);
+        bool hasBest = PlayerPrefs.HasKey(key);
         float best = PlayerPrefs.GetFloat(key, 0f);
-        result.newBest = !levelCheated && (best <= 0f || result.seconds < best);
-        result.bestSeconds = result.newBest ? result.seconds : best;
+        result.newBest = !levelCheated && (!hasBest || clockLeft > best);
+        result.bestLeft = result.newBest ? clockLeft : best;
         if (result.newBest)
-            PlayerPrefs.SetFloat(key, result.seconds);
+            PlayerPrefs.SetFloat(key, clockLeft);
         LastLevel = result;
+        RunClockLeft += clockLeft;
 
         if (lastLevel)
         {
@@ -153,11 +166,12 @@ public static class RunTimer
             Complete = true;
 
             // Best runs are kept per starting level, so testing from a later level doesn't beat a full run
-            NewBestRun = !RunCheated && (BestRunSeconds <= 0f || finalSeconds < BestRunSeconds);
+            NewBestRun = !RunCheated && (!HasBestRun || RunClockLeft > BestRunLeft);
             if (NewBestRun)
             {
-                BestRunSeconds = finalSeconds;
-                PlayerPrefs.SetFloat(BestRunKey(startLevel), finalSeconds);
+                BestRunLeft = RunClockLeft;
+                HasBestRun = true;
+                PlayerPrefs.SetFloat(BestRunKey(startLevel), RunClockLeft);
             }
         }
 
@@ -183,5 +197,6 @@ public static class RunTimer
         levelCheated = PresenterCheats.HackerMode;
     }
 
-    static string BestRunKey(string firstLevel) => "OOT.Best.Run." + firstLevel;
+    static string BestLevelKey(string level) => "OOT.BestLeft.Level." + level;
+    static string BestRunKey(string firstLevel) => "OOT.BestLeft.Run." + firstLevel;
 }

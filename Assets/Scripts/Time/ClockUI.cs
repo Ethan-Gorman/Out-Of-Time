@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 // Shows the Clock in the top-left corner, with the world time multiplier next to it (e.g. ×0.42).
 // Turns red and pulses when time is low. Flashes and pops up "-10s" / "+15s" when time is taken or given.
-// When the level's objective is complete the clock turns gold and the level and run times (RunTimer) appear under it.
+// When the level's objective is complete the clock turns gold and the time left and bests (RunTimer) appear under it.
 // Sits on the "Clock" text object inside the HUD canvas.
 [RequireComponent(typeof(Text))]
 public class ClockUI : MonoBehaviour
@@ -121,7 +121,8 @@ public class ClockUI : MonoBehaviour
         return $"<size={size}><color=#{ColorUtility.ToHtmlStringRGBA(c)}>×{scale:0.00}</color></size>";
     }
 
-    // Level (and run, if it's over) times under the clock, with bests. Built once, at runtime
+    // Level (and run, if it's over) time left under the clock, with bests, and the real time taken
+    // as a dimmer second line. Built once, at runtime
     void ShowResults()
     {
         var level = RunTimer.LastLevel;
@@ -134,16 +135,22 @@ public class ClockUI : MonoBehaviour
         results.color = Color.white;
 
         string best = ColorUtility.ToHtmlStringRGBA(newBestColor);
-        // Cheated times aren't saved, and there may be no best yet to show
-        string text = $"LEVEL  {RunTimer.Format(level.seconds)}" +
+        const string dim = "<color=#FFFFFFAA>";
+        // Bests are the most time left; cheated times aren't saved
+        string text = $"TIME LEFT  {RunTimer.Format(level.clockLeft)}" +
             (level.cheated ? "  (cheats used)" :
-             level.newBest ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(level.bestSeconds)})");
+             level.newBest ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(level.bestLeft)})");
+        text += $"\n{dim}level took {RunTimer.Format(level.seconds)}";
         if (level.deaths > 0)
-            text += $"\n{level.deaths} {(level.deaths == 1 ? "retry" : "retries")}";
+            text += $", {level.deaths} {(level.deaths == 1 ? "retry" : "retries")}";
+        text += "</color>";
         if (RunTimer.Complete)
-            text += $"\nRUN  {RunTimer.Format(RunTimer.RunSeconds)}" +
+        {
+            text += $"\nRUN TIME LEFT  {RunTimer.Format(RunTimer.RunClockLeft)}" +
                 (RunTimer.RunCheated ? "  (cheats used)" :
-                 RunTimer.NewBestRun ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(RunTimer.BestRunSeconds)})");
+                 RunTimer.NewBestRun ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(RunTimer.BestRunLeft)})");
+            text += $"\n{dim}run took {RunTimer.Format(RunTimer.RunSeconds)}</color>";
+        }
         results.text = text;
     }
 
