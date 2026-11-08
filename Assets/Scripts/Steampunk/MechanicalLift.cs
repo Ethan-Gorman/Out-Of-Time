@@ -42,7 +42,7 @@ public class MechanicalLift : Interactable
 
     public override string Prompt => Current switch
     {
-        State.Unpowered => "Inspect the lift",
+        State.Unpowered => "Inspect the lift <size=24>(no power)</size>",
         State.Bottom => upPrompt,
         State.Top => downPrompt,
         _ => "",

@@ -49,7 +49,10 @@ public class CaveNpc : Interactable
     Transform cam;
     Material puffMaterial;
 
-    public override string Prompt => talkPrompt;
+    // A plain "Talk" names the villager from its object, e.g. "Talk to the flint knapper"
+    public override string Prompt => string.IsNullOrEmpty(talkPrompt) || talkPrompt == "Talk"
+        ? $"Talk to the {name.ToLowerInvariant()}"
+        : talkPrompt;
     public override bool CanInteract => lines != null && lines.Length > 0;
     public override bool OutlineOnlyInRange => true;
 

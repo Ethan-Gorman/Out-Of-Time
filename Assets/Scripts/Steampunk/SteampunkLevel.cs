@@ -144,14 +144,14 @@ public class SteampunkLevel : MonoBehaviour, ITimeMachineStory
             return;
         if (timeMachine != null && timeMachine.Current != TimeMachine.State.Broken)
             return;
-        if (ReachedFirstFloor) { ui.SetObjective(machineObjective); return; }
-        if (lift != null && lift.Powered) { ui.SetObjective(liftObjective); return; }
+        if (ReachedFirstFloor) { ui.SetObjective($"{machineObjective}\nIt's at the far end of the first floor"); return; }
+        if (lift != null && lift.Powered) { ui.SetObjective($"{liftObjective}\nStand on the lift and press E"); return; }
 
         int turning = (gear1 != null && gear1.IsRunning ? 1 : 0) + (gear2 != null && gear2.IsRunning ? 1 : 0) + (gear3 != null && gear3.IsRunning ? 1 : 0);
         string next =
             gear1 != null && !gear1.IsRepaired ? (HasChain ? "Fit the chain to Gear 1" : "Find a spare chain in the storage area") :
             gear2 != null && !gear2.IsRepaired ? (HasOil ? "Oil the seized Gear 2" : "Find oil near the mechanic's workbench") :
-            "Wait for the tower to start";
+            "Wait for Gear 3's brake to let go";
         ui.SetObjective($"{gearsObjective} ({turning}/3)\n{next}");
     }
 

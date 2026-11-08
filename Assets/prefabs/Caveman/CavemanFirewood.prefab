@@ -82,9 +82,9 @@ MonoBehaviour:
   destructionStyle: 1
   destructionDuration: 0.55
   needAxeLines:
-  - Too tough for my bare hands. I need an axe.
+  - Too tough for bare hands. I need a Stone Axe from the flat stone.
   needBoarLines:
-  - The boar is guarding the cave. I need to deal with it first.
+  - The boar is guarding the cave. I have to hunt it down first.
   onBroken:
     m_PersistentCalls:
       m_Calls: []

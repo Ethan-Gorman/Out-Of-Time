@@ -19,7 +19,7 @@ public class TimeMachine : Interactable
 
     [Header("Text")]
     public string inspectPrompt = "Inspect the time machine";
-    public string repairPrompt = "Repair the time machine";
+    public string repairPrompt = "Fit the Time Crystal";
     [TextArea] public string[] brokenLines = { "It's completely dead. I need a Time Crystal to power it." };
 
     public UnityEvent onRepaired;

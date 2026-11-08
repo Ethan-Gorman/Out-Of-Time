@@ -51,15 +51,15 @@ MonoBehaviour:
   introDelay: 0.6
   introLines:
   - The time machine's temporal compass is cracked. It can't find its way through time.
-  - Magnetic stones could fix it... but first I need tools.
-  gatherObjective: Gather wood and stone
+  - 'Magnetic stones could fix it... but first I need tools. An axe: 2 wood, 2 stone.'
+  gatherObjective: Hit firewood stacks and rocks for an axe
   canCraftLines:
-  - That's enough to make a Stone Axe.
-  craftObjective: Craft a Stone Axe at the flat stone
+  - That's enough for a Stone Axe. To the flat stone!
+  craftObjective: Craft a Stone Axe at the flat crafting stone
   axeLines:
   - A Stone Axe! Now I can deal with that boar.
   - And cut through the brambles to the cave.
-  boarObjective: Hunt the wild boar
+  boarObjective: Hunt the wild boar with your axe
   boarLines:
   - The boar is down. That bought me some time!
   caveObjective: Find the magnetic stones in the dark cave
@@ -67,7 +67,7 @@ MonoBehaviour:
   - A glowing magnetic stone!
   allStonesLines:
   - That's all three. Back to the time machine!
-  returnObjective: Return to the time machine
+  returnObjective: Bring the stones back to the time machine
   repairedLines:
   - The compass spins true! The time machine is repaired.
   - 'Next stop: the Medieval Era.'

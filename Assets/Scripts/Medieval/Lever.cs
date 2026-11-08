@@ -23,7 +23,7 @@ public class Lever : Interactable
     void Awake()
     {
         if (string.IsNullOrEmpty(prompt) || prompt == "Interact")
-            prompt = "Pull lever";
+            prompt = gate != null ? "Pull lever <size=24>(opens the gate)</size>" : "Pull lever";
         if (handle != null)
         {
             handleBase = handle.localRotation;

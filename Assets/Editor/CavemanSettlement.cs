@@ -281,7 +281,7 @@ public static class CavemanSettlement
         FlatSprite(parent, "Sitting Stone", Rug + new Vector3(-1.5f, 0.08f, -0.7f), Art("SitSlab", 24, 16, SlabPixels), 1f);
         FlatSprite(parent, "Sitting Stone", Rug + new Vector3(1.6f, 0.08f, -0.5f), Art("SitSlab", 24, 16, SlabPixels), 1f, 25f);
         Villager(parent, "Elder", Rug + new Vector3(0, 0, 1.0f), Look.Elder, Blink("Elder", Look.Elder, Pose.Staff), 2.5f,
-            "Ahh... the stranger who fell out of the humming machine.", "The glowing stones sleep deep in the cave, past the thorns.", "Thorns fear the axe. Make one at the flat rock.");
+            "Ahh... the stranger who fell out of the humming machine.", "Three glowing stones sleep deep in the cave, past the thorns.", "Thorns fear the axe. Make one at the flat rock.");
         var kid = Villager(parent, "Listening Child", Rug + new Vector3(-1.5f, 0, -0.7f), Look.KidB, Blink("KidB", Look.KidB, Pose.Seated), 2.5f,
             "Shh! Grandfather is telling the old stories.");
         kid.transform.localScale = Vector3.one * 0.72f;
@@ -317,7 +317,7 @@ public static class CavemanSettlement
     {
         FlatSprite(parent, "Knapping Stone", new Vector3(-3.2f, 0.08f, -3.7f), Art("SitSlab", 24, 16, SlabPixels), 1.1f, -15f);
         Villager(parent, "Flint Knapper", new Vector3(-3.2f, 0, -3.6f), Look.Knapper, Frames("Knapper", Look.Knapper, Pose.Knap, 2), 3f,
-            "Two wood, two stone. Strike them together on the flat rock, and you have an axe.", "Careful. Flint bites.");
+            "Two wood from the firewood stacks, two stone from the rocks. Strike them on the flat rock: axe!", "Careful. Flint bites.");
         FlatSprite(parent, "Sleeping Fur", new Vector3(0.6f, 0.07f, -8.4f), Art("BearRug", 48, 40, RugPixels), 0.75f, 80f);
         FlatSprite(parent, "Sleeping Fur", new Vector3(-2.2f, 0.075f, -8.8f), Art("BearRug", 48, 40, RugPixels), 0.7f, 100f);
         Prop(parent, "Bones", new Vector3(2.4f, 0, -9.4f), Art("BonePile", 26, 16, BonePixels), 0.6f, 0f);

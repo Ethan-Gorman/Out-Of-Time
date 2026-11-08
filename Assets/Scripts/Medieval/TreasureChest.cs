@@ -10,7 +10,7 @@ public class TreasureChest : Interactable
 
     public float timeBonus = 15f;
 
-    [TextArea] public string[] openedLines = { "A healing potion! I feel much better." };
+    [TextArea] public string[] openedLines = { "Treasure! A little spare time for the clock." };
 
     public UnityEvent onOpened;
 
@@ -26,6 +26,9 @@ public class TreasureChest : Interactable
         if (lid != null)
             lidBase = lid.localRotation;
     }
+
+    // Says what's inside, so skipping the chest is a real choice
+    public override string Prompt => timeBonus > 0f ? $"{prompt} <size=24>(+{timeBonus:0}s on the clock)</size>" : prompt;
 
     public override bool CanInteract => !IsOpen;
 

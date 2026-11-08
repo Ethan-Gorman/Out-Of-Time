@@ -71,7 +71,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CraftingStation
   prompt: Interact
   needMaterialsLines:
-  - I need 2 wood and 2 stone to make an axe.
+  - Firewood stacks give wood, rocks give stone.
 --- !u!1 &2654904144346373672
 GameObject:
   m_ObjectHideFlags: 0

@@ -22,8 +22,8 @@ public class Breakable : Interactable
     public DestructionStyle destructionStyle = DestructionStyle.Crumble;
     public float destructionDuration = 0.55f;
 
-    [TextArea] public string[] needAxeLines = { "Too tough for my bare hands. I need an axe." };
-    [TextArea] public string[] needBoarLines = { "The boar is guarding the cave. I need to deal with it first." };
+    [TextArea] public string[] needAxeLines = { "Too tough for bare hands. I need a Stone Axe from the flat stone." };
+    [TextArea] public string[] needBoarLines = { "The boar is guarding the cave. I have to hunt it down first." };
 
     public UnityEvent onBroken;
 
@@ -44,11 +44,75 @@ public class Breakable : Interactable
             visualBaseScale = visual.localScale;
             visualBaseRotation = visual.localRotation;
         }
+        FitSolidToArt();
     }
 
-    public override string Prompt => !string.IsNullOrEmpty(prompt) && prompt != "Interact"
-        ? prompt
-        : (HasAxe ? "Chop" : "Hit") + (resource == CavemanLevel.Resource.Wood ? " tree" : " rock");
+    // Rocks reshape their art per instance (scale, rotation, blob meshes), so the prefab's blocker can end up much
+    // smaller than what you see and the player walks into the rock: grow the solid box to cover the art's footprint
+    void FitSolidToArt()
+    {
+        var renderers = (visual != null ? visual : transform).GetComponentsInChildren<MeshRenderer>();
+        if (renderers.Length == 0)
+            return;  // sprite art (firewood, brambles) already has a hand-sized blocker
+
+        foreach (var box in GetComponentsInChildren<BoxCollider>())
+        {
+            if (box.isTrigger)
+                continue;
+
+            // The art's real extent (its mesh vertices) measured along the box's own axes, since the rock may be
+            // turned and stretched. Bounding-box corners would stick out far past a turned, rounded part
+            bool any = false;
+            Bounds art = default;
+            foreach (var r in renderers)
+            {
+                var mesh = r.TryGetComponent(out MeshFilter filter) ? filter.sharedMesh : null;
+                if (mesh == null || !mesh.isReadable)
+                    continue;
+                foreach (var v in mesh.vertices)
+                {
+                    Vector3 p = box.transform.InverseTransformPoint(r.transform.TransformPoint(v));
+                    if (!any) { art = new Bounds(p, Vector3.zero); any = true; }
+                    else art.Encapsulate(p);
+                }
+            }
+            if (!any)
+                continue;
+
+            box.size = new Vector3(Mathf.Max(box.size.x, art.size.x), box.size.y, Mathf.Max(box.size.z, art.size.z));
+            box.center = new Vector3(art.center.x, box.center.y, art.center.z);
+        }
+    }
+
+    bool BoarAlive => requireBoarKilled && CavemanLevel.Instance != null && !CavemanLevel.Instance.BoarKilled;
+
+    // The action plus what it takes, e.g. "Hit rock (hands: 4 hits)", "Chop tree (axe: 1 hit)", "Cut brambles (needs Stone Axe)"
+    public override string Prompt
+    {
+        get
+        {
+            string action = !string.IsNullOrEmpty(prompt) && prompt != "Interact" ? prompt
+                : requireAxe ? "Cut brambles"
+                : resource == CavemanLevel.Resource.Wood ? (HasAxe ? "Chop tree" : "Hit tree")
+                : (HasAxe ? "Smash rock" : "Hit rock");
+            return $"{action} <size=24>({Requirement})</size>";
+        }
+    }
+
+    string Requirement
+    {
+        get
+        {
+            bool needAxe = requireAxe && !HasAxe;
+            if (BoarAlive)
+                return needAxe ? "make an axe, hunt the boar" : "hunt the boar first";
+            if (needAxe)
+                return "needs Stone Axe";
+            int damage = HasAxe ? axeDamage : handDamage;
+            int hits = damage > 0 ? Mathf.CeilToInt(health / (float)damage) : 0;
+            return $"{(HasAxe ? "axe" : "hands")}: {hits} {(hits == 1 ? "hit" : "hits")}";
+        }
+    }
 
     public override bool CanInteract => !broken;
     public override bool KeepUsedOutline => false;
@@ -58,7 +122,7 @@ public class Breakable : Interactable
         if (broken)
             return;
 
-        if (requireBoarKilled && CavemanLevel.Instance != null && !CavemanLevel.Instance.BoarKilled)
+        if (BoarAlive)
         {
             CavemanFx.Play(CavemanSfx.Sound.Deny);
             if (MedievalUI.Instance != null)

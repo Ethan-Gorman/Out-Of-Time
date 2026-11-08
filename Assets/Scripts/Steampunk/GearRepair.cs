@@ -26,7 +26,10 @@ public class GearRepair : Interactable
 
     SteampunkLevel Level => SteampunkLevel.Instance;
 
-    public override string Prompt => Level != null && Level.Has(needs) ? repairPrompt : inspectPrompt;
+    // Without the item, the prompt names what's missing: "Inspect Gear 1 (needs a spare chain)"
+    public override string Prompt => Level != null && Level.Has(needs)
+        ? repairPrompt
+        : $"{inspectPrompt} <size=24>(needs {(needs == SteampunkLevel.Item.Chain ? "a spare chain" : "oil")})</size>";
     public override bool CanInteract => !IsRepaired;
 
     void Awake()

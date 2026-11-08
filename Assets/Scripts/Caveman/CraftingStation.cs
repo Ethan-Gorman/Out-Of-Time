@@ -2,11 +2,25 @@ using UnityEngine;
 
 public class CraftingStation : Interactable
 {
-    [TextArea] public string[] needMaterialsLines = { "I need 2 wood and 2 stone to make an axe." };
+    // Said after the exact "I need 1 more wood" line, to point at where the materials come from
+    [TextArea] public string[] needMaterialsLines = { "Firewood stacks give wood, rocks give stone." };
 
-    public override string Prompt => CavemanLevel.Instance != null && CavemanLevel.Instance.HasAxe
-        ? "Stone Axe crafted"
-        : "Craft Stone Axe";
+    public override string Prompt
+    {
+        get
+        {
+            var level = CavemanLevel.Instance;
+            if (level == null)
+                return "Craft Stone Axe";
+            if (level.HasAxe)
+                return "Stone Axe crafted";
+            if (level.CanCraftAxe)
+                return "Craft Stone Axe";
+            // Show the recipe progress so the player knows what's still missing
+            return $"Craft axe <size=24>(wood {Mathf.Min(level.Wood, level.axeWoodCost)}/{level.axeWoodCost}, " +
+                   $"stone {Mathf.Min(level.Stone, level.axeStoneCost)}/{level.axeStoneCost})</size>";
+        }
+    }
 
     public override bool CanInteract => CavemanLevel.Instance == null || !CavemanLevel.Instance.HasAxe;
 
@@ -27,7 +41,21 @@ public class CraftingStation : Interactable
         }
 
         CavemanFx.Play(CavemanSfx.Sound.Deny);
-        if (MedievalUI.Instance != null)
-            MedievalUI.Instance.Say(needMaterialsLines);
+        if (MedievalUI.Instance == null)
+            return;
+        var lines = new string[1 + (needMaterialsLines != null ? needMaterialsLines.Length : 0)];
+        lines[0] = MissingLine(level);
+        needMaterialsLines?.CopyTo(lines, 1);
+        MedievalUI.Instance.Say(lines);
+    }
+
+    // "I need 1 more wood and 2 more stone for an axe."
+    static string MissingLine(CavemanLevel level)
+    {
+        int wood = Mathf.Max(0, level.axeWoodCost - level.Wood);
+        int stone = Mathf.Max(0, level.axeStoneCost - level.Stone);
+        string missing = wood > 0 && stone > 0 ? $"{wood} more wood and {stone} more stone"
+            : wood > 0 ? $"{wood} more wood" : $"{stone} more stone";
+        return $"I need {missing} for an axe.";
     }
 }

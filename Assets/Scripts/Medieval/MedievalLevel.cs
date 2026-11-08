@@ -1,9 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-#if UNITY_EDITOR
-using UnityEditor.SceneManagement;
-#endif
 
 // Runs the Medieval Era story: intro dialogue, objectives, and what happens when the
 // Time Crystal is collected and the time machine is repaired. All text is editable in the Inspector.
@@ -21,6 +18,9 @@ public class MedievalLevel : MonoBehaviour, ITimeMachineStory
         "There must be one somewhere inside this castle.",
     };
     public string startObjective = "Find the Time Crystal in the castle";
+
+    // Said when the player checks the machine before finding the crystal
+    [TextArea] public string[] notReadyLines = { "Still dead. The Time Crystal must be somewhere inside the castle." };
 
     [TextArea] public string[] crystalLines =
     {
@@ -100,7 +100,7 @@ public class MedievalLevel : MonoBehaviour, ITimeMachineStory
 
     // ITimeMachineStory
     public bool CanRepair => HasCrystal;
-    public string[] NotReadyLines => null;
+    public string[] NotReadyLines => notReadyLines;
 
     public void TimeMachineBoarded(bool travelling)
     {
@@ -117,14 +117,10 @@ public class MedievalLevel : MonoBehaviour, ITimeMachineStory
             if (LevelManager.Instance != null)
                 LevelManager.Instance.RestartLevel();
             else
-                SceneManager.LoadScene(scene.buildIndex);
+                ScreenFader.LoadScene(scene.buildIndex);
             return;
         }
 
-#if UNITY_EDITOR
-        EditorSceneManager.LoadSceneInPlayMode(scene.path, new LoadSceneParameters(LoadSceneMode.Single));
-#else
-        SceneManager.LoadScene(scene.name);
-#endif
+        ScreenFader.LoadScene(scene.path);
     }
 }

@@ -23,22 +23,25 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
     [TextArea] public string[] introLines =
     {
         "The time machine's temporal compass is cracked. It can't find its way through time.",
-        "Magnetic stones could fix it... but first I need tools.",
+        "Magnetic stones could fix it... but first I need tools. An axe: 2 wood, 2 stone.",
     };
-    public string gatherObjective = "Gather wood and stone";
+    // The live wood/stone counts are added on a second line
+    public string gatherObjective = "Hit firewood stacks and rocks for an axe";
 
-    [TextArea] public string[] canCraftLines = { "That's enough to make a Stone Axe." };
-    public string craftObjective = "Craft a Stone Axe at the flat stone";
+    [TextArea] public string[] canCraftLines = { "That's enough for a Stone Axe. To the flat stone!" };
+    public string craftObjective = "Craft a Stone Axe at the flat crafting stone";
 
     [TextArea] public string[] axeLines = { "A Stone Axe! Now I can deal with that boar.", "And cut through the brambles to the cave." };
-    public string boarObjective = "Hunt the wild boar";
+    public string boarObjective = "Hunt the wild boar with your axe";
 
     [TextArea] public string[] boarLines = { "The boar is down. That bought me some time!" };
+    // The live stone count is added after it
     public string caveObjective = "Find the magnetic stones in the dark cave";
+    public string brambleHint = "Chop through the brambles at the cave mouth";
 
     [TextArea] public string[] stoneLines = { "A glowing magnetic stone!" };
     [TextArea] public string[] allStonesLines = { "That's all three. Back to the time machine!" };
-    public string returnObjective = "Return to the time machine";
+    public string returnObjective = "Bring the stones back to the time machine";
 
     [TextArea] public string[] repairedLines = { "The compass spins true! The time machine is repaired.", "Next stop: the Medieval Era." };
     public string boardObjective = "Board the time machine";
@@ -75,7 +78,7 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
     {
         yield return new WaitForSecondsRealtime(introDelay);
         Say(introLines);
-        Objective(gatherObjective);
+        Objective(GatherText);
         InventoryChanged?.Invoke();
     }
 
@@ -91,7 +94,17 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
             Say(canCraftLines);
             Objective(craftObjective);
         }
+        else if (!HasAxe && !CanCraftAxe)
+            Objective(GatherText);
     }
+
+    // "Hit firewood stacks and rocks for an axe" with the counts underneath
+    string GatherText => $"{gatherObjective}\nWood {Mathf.Min(Wood, axeWoodCost)}/{axeWoodCost}   Stone {Mathf.Min(Stone, axeStoneCost)}/{axeStoneCost}";
+
+    // "Find the magnetic stones in the dark cave (1/3)", plus the bramble hint until the first stone
+    string CaveText => MagneticStones == 0 && !string.IsNullOrEmpty(brambleHint)
+        ? $"{caveObjective} (0/{magneticStonesNeeded})\n{brambleHint}"
+        : $"{caveObjective} ({MagneticStones}/{magneticStonesNeeded})";
 
     // Spends the materials. Returns false if there aren't enough
     public bool CraftAxe()
@@ -103,7 +116,7 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
         HasAxe = true;
         InventoryChanged?.Invoke();
         Say(axeLines);
-        Objective(BoarKilled ? caveObjective : boarObjective);
+        Objective(BoarKilled ? CaveText : boarObjective);
         return true;
     }
 
@@ -117,7 +130,7 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
             Clock.Instance.AddTime(boarReward);
         Say(boarLines);
         if (MagneticStones < magneticStonesNeeded)
-            Objective(caveObjective);
+            Objective(CaveText);
     }
 
     public void CollectMagneticStone()
@@ -135,17 +148,21 @@ public class CavemanLevel : MonoBehaviour, ITimeMachineStory
         else
         {
             Say(stoneLines);
-            Objective($"{caveObjective} ({MagneticStones}/{magneticStonesNeeded})");
+            Objective(CaveText);
         }
     }
 
     // ITimeMachineStory
     public bool CanRepair => MagneticStones >= magneticStonesNeeded;
 
-    public string[] NotReadyLines => new[]
+    public string[] NotReadyLines
     {
-        $"The temporal compass is cracked. I need {magneticStonesNeeded - MagneticStones} more magnetic stone(s).",
-    };
+        get
+        {
+            int left = magneticStonesNeeded - MagneticStones;
+            return new[] { $"The compass is still cracked. I need {left} more magnetic {(left == 1 ? "stone" : "stones")} from the cave." };
+        }
+    }
 
     public void TimeMachineRepaired()
     {

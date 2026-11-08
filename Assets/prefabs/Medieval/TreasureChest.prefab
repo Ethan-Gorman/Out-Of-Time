@@ -217,7 +217,7 @@ MonoBehaviour:
   openTime: 0.35
   healAmount: 0
   openedLines:
-  - A healing potion! I feel much better.
+  - Treasure! A little spare time for the clock.
   onOpened:
     m_PersistentCalls:
       m_Calls: []

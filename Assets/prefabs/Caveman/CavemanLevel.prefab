@@ -13817,7 +13817,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 8ab0368c5d979ac4f831dd6caf802cca, type: 3}
   framesPerSecond: 3
   lines:
-  - Two wood, two stone. Strike them together on the flat rock, and you have an axe.
+  - 'Two wood from the firewood stacks, two stone from the rocks. Strike them on the flat rock: axe!'
   - Careful. Flint bites.
   talkPrompt: Talk
   orbitCenter: {x: 0, y: 0, z: 0}
@@ -15909,7 +15909,7 @@ MonoBehaviour:
   framesPerSecond: 2.5
   lines:
   - Ahh... the stranger who fell out of the humming machine.
-  - The glowing stones sleep deep in the cave, past the thorns.
+  - Three glowing stones sleep deep in the cave, past the thorns.
   - Thorns fear the axe. Make one at the flat rock.
   talkPrompt: Talk
   orbitCenter: {x: 0, y: 0, z: 0}
