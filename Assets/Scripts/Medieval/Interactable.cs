@@ -10,6 +10,9 @@ public abstract class Interactable : MonoBehaviour
     // Text shown after the key hint, e.g. "[E] Pull lever"
     public virtual string Prompt => prompt;
 
+    // Sets the base prompt text (scene builders, or story scripts that change what a thing does)
+    public void SetPrompt(string text) => prompt = text;
+
     // False hides the prompt and ignores presses (e.g. a lever that's already pulled)
     public virtual bool CanInteract => true;
 

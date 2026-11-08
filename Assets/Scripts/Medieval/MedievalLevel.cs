@@ -25,14 +25,14 @@ public class MedievalLevel : MonoBehaviour, ITimeMachineStory
     [TextArea] public string[] crystalLines =
     {
         "A Time Crystal! This should power the time machine.",
-        "Now back the way I came.",
+        "Back to the time machine... unless that vault is worth the risk.",
     };
     public string returnObjective = "Return to the time machine";
 
     [TextArea] public string[] repairedLines =
     {
         "It's working! The time machine is repaired.",
-        "Next stop: the Industrial Era.",
+        "Next stop: the Steampunk Era.",
     };
     public string boardObjective = "Board the time machine";
 

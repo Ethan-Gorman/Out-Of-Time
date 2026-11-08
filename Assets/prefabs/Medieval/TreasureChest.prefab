@@ -214,10 +214,14 @@ MonoBehaviour:
   prompt: Interact
   lid: {fileID: 416006345554789104}
   openAngle: 110
+  lidAxis: {x: 1, y: 0, z: 0}
   openTime: 0.35
-  healAmount: 0
+  closedVisual: {fileID: 0}
+  openedVisual: {fileID: 0}
+  timeBonus: 40
+  rewardPopupHeight: 1.2
   openedLines:
-  - Treasure! A little spare time for the clock.
+  - A royal hoard! That's a lot of time back on the clock.
   onOpened:
     m_PersistentCalls:
       m_Calls: []

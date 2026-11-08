@@ -30,6 +30,9 @@ Shader "Out Of Time/Lit Cutout"
         _OOT_TopRect4("Top Faces: Tile 4 Rect", Vector) = (0, 0, 1, 1)
         _OOT_TopRect5("Top Faces: Tile 5 Rect", Vector) = (0, 0, 1, 1)
         _OOT_TopBrightness("Top Faces: Brightness", Range(0, 2)) = 0.9
+        // Opt-in looks for flat colour-sheet models (e.g. the Slavic village kit); 0 = off, so nothing else changes
+        _OOT_PaletteSnap("Palette Snap (0 = off; pulls colours towards the era palette)", Range(0, 1)) = 0
+        _OOT_PixelGrain("Pixel Grain (0 = off; 2x2 texel speckle at 16 px per unit)", Range(0, 0.1)) = 0
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -227,7 +230,54 @@ Shader "Out Of Time/Lit Cutout"
             float _OOT_TopCount;
             float4 _OOT_TopRect0, _OOT_TopRect1, _OOT_TopRect2, _OOT_TopRect3, _OOT_TopRect4, _OOT_TopRect5;
             float _OOT_TopBrightness;
+            float _OOT_PaletteSnap;
+            float _OOT_PixelGrain;
+            // Set by EraPalette.cs (globals): a 1-pixel-tall strip of the era's colours, how many there are, and the
+            // grade strength (0 when this era has no palette, so a stale one from the last era is never used).
+            // Sampled with the shared point sampler, like EraPalette.shader, to stay inside the sampler limit
+            TEXTURE2D(_OOT_Palette);
+            float _OOT_PaletteSize;
+            float _OOT_PaletteStrength;
             #include "OOTLights.hlsl"
+
+            // Same "redmean" colour distance as EraPalette.shader, so both pick the same swatch
+            float OOTColourDistance(float3 a, float3 b)
+            {
+                float r = (a.r + b.r) * 0.5;
+                float3 d = a - b;
+                return (2.0 + r) * d.r * d.r + 4.0 * d.g * d.g + (3.0 - r) * d.b * d.b;
+            }
+
+            // Pulls a colour part of the way to the nearest era palette swatch (no palette yet = unchanged)
+            half3 OOTPaletteSnap(half3 color, half amount)
+            {
+                int count = (int)_OOT_PaletteSize;
+                if (count <= 0 || _OOT_PaletteStrength <= 0.0)
+                    return color;
+                float3 best = color;
+                float bestDistance = 1e9;
+                [loop] for (int i = 0; i < min(count, 32); i++)
+                {
+                    float3 swatch = SAMPLE_TEXTURE2D_LOD(_OOT_Palette, sampler_PointClamp, float2((i + 0.5) / count, 0.5), 0).rgb;
+                    float gap = OOTColourDistance(color, swatch);
+                    if (gap < bestDistance)
+                    {
+                        bestDistance = gap;
+                        best = swatch;
+                    }
+                }
+                return lerp(color, (half3)best, amount);
+            }
+
+            // -1..1 per world-space cell of 2x2 texels at 16 px per unit, on the face's main plane
+            // (like the world UVs), so flat faces get chunky pixel grain instead of single-pixel noise
+            half OOTGrain(float3 positionWS, half3 normalWS)
+            {
+                float3 n = abs(normalWS);
+                float2 p = n.y > max(n.x, n.z) ? positionWS.xz : (n.x > n.z ? positionWS.zy : positionWS.xy);
+                float2 cell = floor(p * 8.0 + 0.001);
+                return frac(sin(dot(cell, float2(127.1, 311.7))) * 43758.5453) * 2.0 - 1.0;
+            }
 
             // Light quantised into flat bands with slightly soft edges (pixel art / cartoon shading)
             half OOTBand(half x)
@@ -271,6 +321,12 @@ Shader "Out Of Time/Lit Cutout"
                     half3 tile = SAMPLE_TEXTURE2D(_OOT_TopAtlas, sampler_OOT_TopAtlas, rect.xy + local * rect.zw).rgb;
                     albedo = Luminance(tile) * _OOT_TopBrightness;
                 }
+
+                // Opt-in (both 0 by default): palette snap first, then grain, so the grain survives as light/dark specks
+                if (_OOT_PaletteSnap > 0.0)
+                    albedo = OOTPaletteSnap(albedo, _OOT_PaletteSnap);
+                if (_OOT_PixelGrain > 0.0)
+                    albedo *= 1.0 + _OOT_PixelGrain * OOTGrain(input.positionWS, inputData.normalWS);
 
                 // Torches: the same banded sphere of light as on the floor (OOTLights.hlsl), so walls and floor match
                 half3 glow = OOTTorchGlow(inputData.positionWS, input.positionCS, inputData.shadowMask, _OOT_TorchStrength, _OOT_TorchMax, _OOT_TorchBands, _OOT_TorchBandSoftness);
@@ -521,6 +577,8 @@ Shader "Out Of Time/Lit Cutout"
             float _OOT_TopCount;
             float4 _OOT_TopRect0, _OOT_TopRect1, _OOT_TopRect2, _OOT_TopRect3, _OOT_TopRect4, _OOT_TopRect5;
             float _OOT_TopBrightness;
+            float _OOT_PaletteSnap;
+            float _OOT_PixelGrain;
             half CutoutDepthOnlyFragment(Varyings input) : SV_TARGET
             {
                 // Not cut: depth/normals keep the whole wall, so its edges are outlined right across the see-through hole
@@ -599,6 +657,8 @@ Shader "Out Of Time/Lit Cutout"
             float _OOT_TopCount;
             float4 _OOT_TopRect0, _OOT_TopRect1, _OOT_TopRect2, _OOT_TopRect3, _OOT_TopRect4, _OOT_TopRect5;
             float _OOT_TopBrightness;
+            float _OOT_PaletteSnap;
+            float _OOT_PixelGrain;
             void CutoutDepthNormalsFragment(Varyings input, out half4 outNormalWS : SV_Target0
             #ifdef _WRITE_RENDERING_LAYERS
                 , out uint outRenderingLayers : SV_Target1

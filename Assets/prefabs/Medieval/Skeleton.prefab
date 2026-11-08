@@ -270,9 +270,16 @@ MonoBehaviour:
   chaseSpeed: 3.2
   aggroRadius: 6
   leashRadius: 9
-  contactDamage: 25
+  contactTimeCost: -1
   stompHeight: 0.7
   stompBounce: 4.5
+  pauseAfterHit: 1
+  killTimeReward: 5
+  rewardPopupHeight: 1.2
+  onKilled:
+    m_PersistentCalls:
+      m_Calls: []
+  bodyRadius: 0.36
   sprite: {fileID: 3739221323685699819}
   animator: {fileID: 5707495425476895916}
 --- !u!1 &8544478395615315112

@@ -1,7 +1,8 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 // A skeleton that patrols between two points and chases the player when they come close.
-// Touching it hurts; jumping on its head defeats it.
+// Touching it hurts; jumping on its head defeats it and puts a few seconds back on the clock.
 // Moves in world time with a kinematic Rigidbody, like EnemyChase.
 // Keep the art (SpriteRenderer, Animator, Billboard) on the "Sprite" child.
 // Has a solid capsule so the player can't walk through it; the Hitbox trigger sits just outside it.
@@ -23,6 +24,13 @@ public class SkeletonEnemy : MonoBehaviour
     public float stompHeight = 0.7f;
     public float stompBounce = 4.5f;
     public float pauseAfterHit = 1f;
+
+    [Header("Reward")]
+    // Seconds back on the clock for stomping it. 0 gives nothing
+    public float killTimeReward = 5f;
+    // Where the "+5s" popup appears, above the sprite (or the skeleton when it has none)
+    public float rewardPopupHeight = 1.2f;
+    public UnityEvent onKilled;
 
     [Header("Body")]
     public float bodyRadius = 0.36f;
@@ -214,6 +222,17 @@ public class SkeletonEnemy : MonoBehaviour
         if (IsDead)
             return;
         IsDead = true;
+
+        // The IsDead check above means this pays out once. Clock.AddTime shows the HUD "+5s" and plays the gain sound;
+        // skipped once the clock has stopped (out of time, or the level is finished)
+        var clock = Clock.Instance;
+        if (killTimeReward > 0f && clock != null && !clock.IsOut && !clock.IsFrozen)
+        {
+            clock.AddTime(killTimeReward);
+            Vector3 at = sprite != null ? sprite.transform.position : transform.position;
+            FloatText.TimeGain(at + Vector3.up * rewardPopupHeight, killTimeReward);
+        }
+        onKilled?.Invoke();
 
         if (animator != null)
         {
