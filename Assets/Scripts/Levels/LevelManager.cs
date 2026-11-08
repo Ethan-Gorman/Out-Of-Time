@@ -22,7 +22,7 @@ public class LevelManager : MonoBehaviour
     public bool LevelFinished { get; private set; }
 
     bool hasEra;
-    bool loadingNext;
+    Coroutine loadingNext;
 
     // Statics survive between play sessions when domain reload is off, so reset on play
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -66,10 +66,8 @@ public class LevelManager : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         LevelFinished = false;
-        loadingNext = false;
-        // A next-level wait from the old scene must not fire in this one
-        // (e.g. a restart or era jump started while it was counting down)
-        StopAllCoroutines();
+        // Any scene load (a retry, a cheat jump) replaces the level, so a pending next-era load must not fire into it
+        CancelPendingLoad();
         RefreshEra();
         RunTimer.EnterLevel(scene.name);
     }
@@ -105,9 +103,12 @@ public class LevelManager : MonoBehaviour
     }
 
     // The level's objective is complete: freezes the Clock and records the level's time (RunTimer).
-    // The last level in Build Settings (or a scene not in Build Settings yet) also ends the run.
+    // The last era built so far (EraOrder) also ends the run.
     // Safe to call more than once. CompleteLevel calls it too
-    public void FinishLevel()
+    public void FinishLevel() => FinishLevel(false);
+
+    // lastLevel ends the run even when another era follows, e.g. a time machine that doesn't travel on
+    public void FinishLevel(bool lastLevel)
     {
         if (LevelFinished)
             return;
@@ -120,11 +121,10 @@ public class LevelManager : MonoBehaviour
             clockLeft = Clock.Instance.Remaining;
         }
 
-        RunTimer.FinishLevel(clockLeft, !HasNextLevel());
+        RunTimer.FinishLevel(clockLeft, lastLevel || !HasNextLevel());
     }
 
-    // Finishes the level, shows its results for resultsTime, then loads the next scene in Build Settings,
-    // so era scenes must be listed in play order
+    // Finishes the level, shows its results for resultsTime, then loads the next era's scene (EraOrder)
     public void CompleteLevel()
     {
         FinishLevel();
@@ -134,23 +134,27 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        if (!loadingNext)
-        {
-            loadingNext = true;
-            StartCoroutine(LoadNextLevel(SceneManager.GetActiveScene().buildIndex + 1));
-        }
+        if (loadingNext == null)
+            loadingNext = StartCoroutine(LoadNextLevel(EraOrder.NextBuildIndex()));
+    }
+
+    // Stops a next-era load that is still waiting out the results. Called on every scene load,
+    // and by PresenterCheats before it loads a scene itself
+    public void CancelPendingLoad()
+    {
+        if (loadingNext != null)
+            StopCoroutine(loadingNext);
+        loadingNext = null;
     }
 
     IEnumerator LoadNextLevel(int index)
     {
         // Realtime, so it doesn't depend on the world moving
         yield return new WaitForSecondsRealtime(resultsTime);
+        loadingNext = null;
         ScreenFader.LoadScene(index);
     }
 
-    static bool HasNextLevel()
-    {
-        int index = SceneManager.GetActiveScene().buildIndex;
-        return index >= 0 && index + 1 < SceneManager.sceneCountInBuildSettings;
-    }
+    // Another era's scene comes after this one. Non-era scenes (SampleScene, tests) never travel on
+    static bool HasNextLevel() => EraOrder.HasNext();
 }

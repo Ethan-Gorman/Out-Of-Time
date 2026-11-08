@@ -18,7 +18,6 @@ public class PresenterCheats : MonoBehaviour
     // Read by Clock (no drain, no time loss) and PlayerDamage (no hits)
     public static bool HackerMode { get; private set; }
 
-    static readonly string[] EraScenes = { "Caveman", "Medieval", "Steampunk", "Future" };
     const string UnlockWord = "hacker";
 
     bool unlocked;
@@ -91,34 +90,54 @@ public class PresenterCheats : MonoBehaviour
         if (k.nKey.wasPressedThisFrame) NextEra();
         if (k.oKey.wasPressedThisFrame) CompleteObjective();
         if (k.pKey.wasPressedThisFrame) TeleportToNext();
-        if (k.tKey.wasPressedThisFrame && Clock.Instance != null) { Clock.Instance.AddTime(30f); Toast("+30 seconds"); }
-        if (k.hKey.wasPressedThisFrame) { HackerMode = !HackerMode; Toast(HackerMode ? "HACKER MODE ON: time is on your side" : "Hacker Mode off"); }
+        if (k.tKey.wasPressedThisFrame && Clock.Instance != null) { RunTimer.MarkCheated(); Clock.Instance.AddTime(30f); Toast("+30 seconds"); }
+        if (k.hKey.wasPressedThisFrame)
+        {
+            HackerMode = !HackerMode;
+            if (HackerMode) RunTimer.MarkCheated();
+            Toast(HackerMode ? "HACKER MODE ON: time is on your side" : "Hacker Mode off");
+        }
+    }
+
+    // The clock ran out and the level is about to restart: finishing it now would record a split
+    // after the failure and then travel on in the middle of the retry
+    static bool OutOfTime => Clock.Instance != null && Clock.Instance.IsOut;
+
+    // Cheat loads replace the level, so LevelManager's pending next-era load mustn't fire afterwards
+    static void LoadScene(int index)
+    {
+        RunTimer.MarkCheated();
+        if (LevelManager.Instance != null) LevelManager.Instance.CancelPendingLoad();
+        ScreenFader.LoadScene(index);
     }
 
     // ---------------------------------------------------------------- eras
 
+    // F1-F4: the eras in EraOrder's play order
     void LoadEra(int era)
     {
-        for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
-            if (System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i)) == EraScenes[era])
-            {
-                ScreenFader.LoadScene(i);
-                return;
-            }
-        Toast($"No {EraScenes[era]} scene in Build Settings yet");
+        if (era >= EraOrder.Eras.Length)
+            return;
+        string scene = EraOrder.Eras[era].scene;
+        int index = EraOrder.BuildIndexOf(scene);
+        if (index >= 0)
+            LoadScene(index);
+        else
+            Toast($"No {scene} scene in Build Settings yet");
     }
 
     void NextEra()
     {
-        int next = SceneManager.GetActiveScene().buildIndex + 1;
-        string path = next > 0 && next < SceneManager.sceneCountInBuildSettings ? SceneUtility.GetScenePathByBuildIndex(next) : "";
-        if (System.Array.IndexOf(EraScenes, System.IO.Path.GetFileNameWithoutExtension(path)) < 0)
+        if (OutOfTime) { Toast("Out of time, wait for the restart"); return; }
+        int next = EraOrder.NextBuildIndex();
+        if (next < 0)
         {
             Toast("This is the last era so far");
             return;
         }
+        RunTimer.MarkCheated();
         if (LevelManager.Instance != null) LevelManager.Instance.CompleteLevel();
-        else ScreenFader.LoadScene(next);
+        else LoadScene(next);
         Toast("Travelling to the next era...");
     }
 
@@ -126,6 +145,9 @@ public class PresenterCheats : MonoBehaviour
 
     void CompleteObjective()
     {
+        if (OutOfTime) { Toast("Out of time, wait for the restart"); return; }
+        // Marked first: the last step boards the time machine, which records the split straight away
+        RunTimer.MarkCheated();
         string done =
             CavemanLevel.Instance != null ? CavemanStep() :
             MedievalLevel.Instance != null ? MedievalStep() :
@@ -236,6 +258,7 @@ public class PresenterCheats : MonoBehaviour
         if (points.Count == 0) { Toast("No points of interest here"); return; }
         poiIndex %= points.Count;
         var (name, target) = points[poiIndex++];
+        RunTimer.MarkCheated();
         Teleport(target.position + new Vector3(0f, 0.3f, -2f));
         Toast($"Teleported: {name} ({poiIndex}/{points.Count})");
     }

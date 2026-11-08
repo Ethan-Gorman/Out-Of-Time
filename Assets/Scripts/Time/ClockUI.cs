@@ -134,13 +134,16 @@ public class ClockUI : MonoBehaviour
         results.color = Color.white;
 
         string best = ColorUtility.ToHtmlStringRGBA(newBestColor);
+        // Cheated times aren't saved, and there may be no best yet to show
         string text = $"LEVEL  {RunTimer.Format(level.seconds)}" +
-            (level.newBest ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(level.bestSeconds)})");
+            (level.cheated ? "  (cheats used)" :
+             level.newBest ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(level.bestSeconds)})");
         if (level.deaths > 0)
             text += $"\n{level.deaths} {(level.deaths == 1 ? "retry" : "retries")}";
         if (RunTimer.Complete)
             text += $"\nRUN  {RunTimer.Format(RunTimer.RunSeconds)}" +
-                (RunTimer.NewBestRun ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(RunTimer.BestRunSeconds)})");
+                (RunTimer.RunCheated ? "  (cheats used)" :
+                 RunTimer.NewBestRun ? $"  <color=#{best}>NEW BEST</color>" : $"  (best {RunTimer.Format(RunTimer.BestRunSeconds)})");
         results.text = text;
     }
 

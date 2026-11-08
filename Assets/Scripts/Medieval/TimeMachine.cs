@@ -71,9 +71,10 @@ public class TimeMachine : Interactable
             case State.Repaired:
                 Current = State.Boarded;
 
-                // Objective complete: freezes the clock and records the level's time
+                // Objective complete: freezes the clock and records the level's time.
+                // A machine that doesn't travel on is the end of the game so far, so it ends the run
                 if (LevelManager.Instance != null)
-                    LevelManager.Instance.FinishLevel();
+                    LevelManager.Instance.FinishLevel(lastLevel: !loadNextEra);
                 onBoarded.Invoke();
                 bool travelling = loadNextEra && LevelManager.Instance != null;
                 story?.TimeMachineBoarded(travelling);

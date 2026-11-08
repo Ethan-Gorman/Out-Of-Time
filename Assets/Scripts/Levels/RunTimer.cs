@@ -15,6 +15,7 @@ public static class RunTimer
         public float clockLeft;   // seconds left on the Clock when it was finished
         public float bestSeconds; // best split for this level (this one, if it's a new best)
         public bool newBest;
+        public bool cheated;      // presenter cheats were used on it, so no best time was saved
     }
 
     // True from the first level loading until the last level is finished
@@ -32,6 +33,9 @@ public static class RunTimer
 
     public static int Deaths { get; private set; }
 
+    // True once a presenter cheat was used this run: the run's best time isn't saved
+    public static bool RunCheated { get; private set; }
+
     // Real seconds since the run started (frozen once it's complete)
     public static float RunSeconds => Running ? Time.realtimeSinceStartup - runStart : finalSeconds;
 
@@ -45,6 +49,7 @@ public static class RunTimer
     static string startLevel;
     static int levelDeaths;
     static bool levelFinished;
+    static bool levelCheated;
 
     // Statics survive between play sessions when domain reload is off, so reset on play
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -56,11 +61,13 @@ public static class RunTimer
         BestRunSeconds = 0f;
         NewBestRun = false;
         Deaths = 0;
+        RunCheated = false;
         finalSeconds = 0f;
         currentLevel = null;
         startLevel = null;
         levelDeaths = 0;
         levelFinished = false;
+        levelCheated = false;
     }
 
     // Called by LevelManager whenever a level scene loads. Loading the same level again is a retry,
@@ -77,6 +84,8 @@ public static class RunTimer
             NewBestRun = false;
             LastLevel = null;
             Deaths = 0;
+            // Hacker Mode left on from before counts straight away
+            RunCheated = PresenterCheats.HackerMode;
             runStart = now;
             startLevel = level;
             BestRunSeconds = PlayerPrefs.GetFloat(BestRunKey(level), 0f);
@@ -100,6 +109,14 @@ public static class RunTimer
         Deaths++;
     }
 
+    // Called by PresenterCheats whenever a cheat is used, so skipped or assisted times don't become bests.
+    // The split still shows; the flag clears when a fresh run starts
+    public static void MarkCheated()
+    {
+        levelCheated = true;
+        RunCheated = true;
+    }
+
     // Called by LevelManager when the level's objective is complete. lastLevel ends the run
     public static LevelResult FinishLevel(float clockLeft, bool lastLevel)
     {
@@ -116,9 +133,14 @@ public static class RunTimer
             clockLeft = clockLeft,
         };
 
+        // Hacker Mode can stay on across levels, so it counts even without a fresh MarkCheated
+        if (PresenterCheats.HackerMode)
+            MarkCheated();
+        result.cheated = levelCheated;
+
         string key = "OOT.Best.Level." + currentLevel;
         float best = PlayerPrefs.GetFloat(key, 0f);
-        result.newBest = best <= 0f || result.seconds < best;
+        result.newBest = !levelCheated && (best <= 0f || result.seconds < best);
         result.bestSeconds = result.newBest ? result.seconds : best;
         if (result.newBest)
             PlayerPrefs.SetFloat(key, result.seconds);
@@ -131,7 +153,7 @@ public static class RunTimer
             Complete = true;
 
             // Best runs are kept per starting level, so testing from a later level doesn't beat a full run
-            NewBestRun = BestRunSeconds <= 0f || finalSeconds < BestRunSeconds;
+            NewBestRun = !RunCheated && (BestRunSeconds <= 0f || finalSeconds < BestRunSeconds);
             if (NewBestRun)
             {
                 BestRunSeconds = finalSeconds;
@@ -157,6 +179,8 @@ public static class RunTimer
         levelStart = now;
         levelDeaths = 0;
         levelFinished = false;
+        // Hacker Mode still on from the last level counts, even if it's turned off before this one ends
+        levelCheated = PresenterCheats.HackerMode;
     }
 
     static string BestRunKey(string firstLevel) => "OOT.Best.Run." + firstLevel;

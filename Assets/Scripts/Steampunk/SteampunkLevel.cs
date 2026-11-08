@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 // Runs the Steampunk Era story: the fall into the factory, the chain and oil, the three tower gears,
 // the lift and the time machine. All text is editable in the Inspector.
@@ -56,8 +55,6 @@ public class SteampunkLevel : MonoBehaviour, ITimeMachineStory
     };
     public string boardObjective = "Board the time machine";
     [TextArea] public string nextEraBanner = "FUTURE ERA\n<size=36>Coming soon</size>";
-    // The scene loaded after this one must have this in its name, otherwise boarding shows the banner instead
-    public string nextSceneName = "Future";
 
     public bool HasChain { get; private set; }
     public bool HasOil { get; private set; }
@@ -66,9 +63,9 @@ public class SteampunkLevel : MonoBehaviour, ITimeMachineStory
     void Awake()
     {
         Instance = this;
-        // Only travel when the Future scene really is next in Build Settings (not SampleScene or nothing)
+        // Only travel when the next era's scene exists (EraOrder); until then boarding shows the banner and ends the run
         if (timeMachine != null)
-            timeMachine.loadNextEra = NextSceneIsFuture();
+            timeMachine.loadNextEra = EraOrder.HasNext();
     }
 
     void OnDestroy()
@@ -159,15 +156,6 @@ public class SteampunkLevel : MonoBehaviour, ITimeMachineStory
     {
         if (MedievalUI.Instance != null)
             MedievalUI.Instance.Say(lines);
-    }
-
-    bool NextSceneIsFuture()
-    {
-        int next = SceneManager.GetActiveScene().buildIndex + 1;
-        if (next <= 0 || next >= SceneManager.sceneCountInBuildSettings)
-            return false;
-        string path = SceneUtility.GetScenePathByBuildIndex(next);
-        return !string.IsNullOrEmpty(nextSceneName) && path.Contains(nextSceneName);
     }
 
     // ITimeMachineStory
