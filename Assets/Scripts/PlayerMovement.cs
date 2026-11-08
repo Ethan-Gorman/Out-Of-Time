@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,6 +14,10 @@ public class PlayerMovement : MonoBehaviour
     // The same rate is used for braking, turning, and easing into and out of a sprint.
     // World time follows the player's speed, so this is also how long slow-mo takes to kick in
     public float accelerationTime = 0.1f;
+
+    // Steepest slope the player can walk up, in degrees. The player has no friction and its velocity is set
+    // directly, so without this it slides up anything short of a vertical wall
+    [Range(0f, 89f)] public float maxSlopeAngle = 45f;
 
     [Header("Sprint (hold Left Shift / left stick press)")]
     // Top speed multiplier while sprinting. The clock cost lives on TimeController
@@ -47,6 +52,9 @@ public class PlayerMovement : MonoBehaviour
     // Walking into a wall gives ~0 here even though planarVelocity says full speed
     float measuredSpeed;
     Vector3 lastPosition;
+
+    // Ground-plane directions pointing out of surfaces too steep to walk up, touched last physics step
+    readonly List<Vector3> steepNormals = new List<Vector3>();
 
     public Vector2 MoveInput => input;
 
@@ -192,7 +200,33 @@ public class PlayerMovement : MonoBehaviour
         float step = accelerationTime > 0f ? speed / accelerationTime * Time.fixedDeltaTime : float.MaxValue;
         planarVelocity = Vector3.MoveTowards(planarVelocity, target, step);
 
+        // Too-steep slopes: drop the part of the movement that pushes into them, so the player slides
+        // along them like a wall instead of being pushed up
+        Vector3 velocity = planarVelocity;
+        foreach (var outward in steepNormals)
+        {
+            float into = Vector3.Dot(velocity, outward);
+            if (into < 0f)
+                velocity -= outward * into;
+        }
+        steepNormals.Clear();
+
         // Keep the current vertical velocity so gravity still works
-        body.linearVelocity = new Vector3(planarVelocity.x, body.linearVelocity.y, planarVelocity.z);
+        body.linearVelocity = new Vector3(velocity.x, body.linearVelocity.y, velocity.z);
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        float minUp = Mathf.Cos(maxSlopeAngle * Mathf.Deg2Rad);
+        for (int i = 0; i < collision.contactCount; i++)
+        {
+            Vector3 normal = collision.GetContact(i).normal;
+            // Walkable ground, or a ceiling/underside (pointing down): not a slope to climb
+            if (normal.y >= minUp || normal.y < -0.01f)
+                continue;
+            Vector3 outward = new Vector3(normal.x, 0f, normal.z);
+            if (outward.sqrMagnitude > 0.0001f)
+                steepNormals.Add(outward.normalized);
+        }
     }
 }
