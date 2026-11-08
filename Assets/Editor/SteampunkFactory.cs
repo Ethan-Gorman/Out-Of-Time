@@ -311,8 +311,9 @@ public static partial class SteampunkSceneBuilder
         foreach (var p in pieces)
         {
             Vector3 min = new Vector3(p.x, FF - 0.4f, p.z), max = new Vector3(p.y, FF, p.w);
-            Box("First floor collider", f, (min + max) * 0.5f, max - min, null, true);
-            Tiles("First floor", f, min, max, floorMat, 4f);
+            // Each tile is its own collider: the OccluderFader only cuts renderers on (or under) the collider
+            // it hits, so a separate invisible collider would hide the player underneath without ever being cut
+            Tiles("First floor", f, min, max, floorMat, 4f, true);
         }
         // Girders under the front edge, iron columns down to the ground floor
         foreach (var span in new[] { new Vector2(4f, 22f), new Vector2(-8.6f, -3f), new Vector2(-13f, -11f) })
@@ -423,7 +424,7 @@ public static partial class SteampunkSceneBuilder
     }
 
     // Splits a box into tiles: lights are per object, so one huge floor would only ever see a handful of lamps
-    static void Tiles(string name, Transform parent, Vector3 min, Vector3 max, Material mat, float tile)
+    static void Tiles(string name, Transform parent, Vector3 min, Vector3 max, Material mat, float tile, bool solid = false)
     {
         var group = Group(name, parent);
         Vector3 size = max - min;
@@ -432,7 +433,7 @@ public static partial class SteampunkSceneBuilder
         {
             Vector3 a = new Vector3(min.x + size.x * i / nx, min.y + size.y * j / ny, min.z + size.z * k / nz);
             Vector3 c = new Vector3(min.x + size.x * (i + 1) / nx, min.y + size.y * (j + 1) / ny, min.z + size.z * (k + 1) / nz);
-            Box(name, group, (a + c) * 0.5f, c - a, mat);
+            Box(name, group, (a + c) * 0.5f, c - a, mat, solid);
         }
     }
 

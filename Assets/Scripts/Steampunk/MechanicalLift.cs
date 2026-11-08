@@ -30,6 +30,7 @@ public class MechanicalLift : Interactable
     [TextArea] public string[] unpoweredLines = { "PLAYER: \"The lift's dead. The gear tower must drive it.\"" };
     public string upPrompt = "Ride the lift up";
     public string downPrompt = "Ride the lift down";
+    public string stepOnPrompt = "Step onto the lift";
 
     public State Current { get; private set; } = State.Unpowered;
     public bool Powered => Current != State.Unpowered;
@@ -43,10 +44,13 @@ public class MechanicalLift : Interactable
     public override string Prompt => Current switch
     {
         State.Unpowered => "Inspect the lift <size=24>(no power)</size>",
-        State.Bottom => upPrompt,
-        State.Top => downPrompt,
+        // The "in range" trigger is wider than the deck, so the player can be beside the lift, not on it
+        State.Bottom => PlayerAboard() ? upPrompt : stepOnPrompt,
+        State.Top => PlayerAboard() ? downPrompt : stepOnPrompt,
         _ => "",
     };
+
+    static bool OutOfTime => Clock.Instance != null && Clock.Instance.IsOut;
 
     public override bool CanInteract => Current == State.Unpowered || Current == State.Bottom || Current == State.Top;
 
@@ -91,10 +95,25 @@ public class MechanicalLift : Interactable
         }
         if (Current != State.Bottom && Current != State.Top)
             return;
+        // Only ride with the player standing on the deck, otherwise they'd float up outside the shaft
+        if (!PlayerAboard() || !CanBoard(interactor))
+            return;
 
-        Board(interactor != null ? interactor.GetComponent<Rigidbody>() : null);
+        Board(interactor.GetComponent<Rigidbody>());
         Current = Current == State.Bottom ? State.Rising : State.Lowering;
         SetRideWheels(true);
+    }
+
+    // Not while out of time, or mid knockback (PlayerDamage would switch movement back on during the ride)
+    static bool CanBoard(MedievalInteractor interactor)
+    {
+        if (interactor == null || OutOfTime)
+            return false;
+        var damage = interactor.GetComponent<PlayerDamage>();
+        if (damage != null && damage.IsInvulnerable)
+            return false;
+        var movement = interactor.GetComponent<PlayerMovement>();
+        return movement == null || movement.enabled;
     }
 
     void Board(Rigidbody player)
@@ -110,7 +129,8 @@ public class MechanicalLift : Interactable
 
     void Unboard()
     {
-        if (riderMovement != null)
+        // Movement stays off once the clock has run out
+        if (riderMovement != null && !OutOfTime)
             riderMovement.enabled = true;
         rider = null;
         riderMovement = null;
@@ -139,8 +159,9 @@ public class MechanicalLift : Interactable
                     Current = State.Top;
                     idleAtTop = 0f;
                     SetRideWheels(false);
+                    bool arrived = rider != null && PlayerAboard() && !OutOfTime;
                     Unboard();
-                    if (SteampunkLevel.Instance != null)
+                    if (arrived && SteampunkLevel.Instance != null)
                         SteampunkLevel.Instance.LiftArrivedTop();
                 }
                 break;
@@ -182,6 +203,9 @@ public class MechanicalLift : Interactable
             Vector3 delta = to - from;
             rider.position += delta;
             rider.linearVelocity = Vector3.zero;
+            // A hit's knockback switches movement back on when it ends: keep it off until we arrive
+            if (riderMovement != null && riderMovement.enabled)
+                riderMovement.enabled = false;
         }
         return (to - target).sqrMagnitude < 0.0001f;
     }
