@@ -114,8 +114,14 @@ MonoBehaviour:
   - {fileID: 21300000, guid: a4b5f97a564ed5b4aacbef102f7210d2, type: 3}
   - {fileID: 21300000, guid: f57a2cb2143b06f4baa2895de1bb6cec, type: 3}
   animationRate: 8
-  needAxeLines:
-  - It's too dangerous to fight bare-handed. I need a Stone Axe.
+  sleepLines:
+  - It's fast asleep. I'm not waking that thing bare-handed. I need a Stone Axe first.
+  wakeTime: 0.7
+  zInterval: 0.9
+  zLife: 1.8
+  zRise: 0.8
+  zColor: {r: 0.96, g: 0.9, b: 0.76, a: 1}
+  solidRadius: 0.6
 --- !u!1 &7289688784015342682
 GameObject:
   m_ObjectHideFlags: 0
