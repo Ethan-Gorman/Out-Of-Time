@@ -52,9 +52,9 @@ public static partial class SteampunkSceneBuilder
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         Instantiate(Prefabs + "/SteampunkEssentials.prefab"); Instantiate(Prefabs + "/SteampunkLevel.prefab");
-        // Inside the factory: dim bronze ambient, so the amber bulbs and the cool window light carry the scene
+        // Inside the factory: warm bronze ambient, bright enough that corners away from the bulbs stay readable
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.44f, 0.39f, 0.35f);
+        RenderSettings.ambientLight = new Color(0.7f, 0.62f, 0.55f);
         EditorSceneManager.SaveScene(scene, ScenePath);
         AddBuildScene();
         Debug.Log("Built Steampunk prefabs and " + ScenePath + ".");
