@@ -293,6 +293,10 @@ public static partial class SteampunkSceneBuilder
         var info = root.GetComponent<LevelInfo>(); if (info == null) throw new InvalidOperationException("MedievalEssentials has no LevelInfo."); info.era = Era.Steampunk;
         // Arrives above the broken first-floor boards and drops through them onto the ground floor
         Transform player = Find(root.transform, "MedievalPlayer"); if (player != null) player.localPosition = SteampunkFactory.ArrivalPoint;
+        // The Steampunk traveller: the top-hat gentleman (MedievalEssentials carries the knight, so always swap it here)
+        var look = PlayerLookBuilder.Build(PlayerLookBuilder.Gentleman);
+        if (player != null && look != null) PlayerLookBuilder.Apply(player, look);
+        else Debug.LogWarning("[Steampunk] Gentleman sheet missing (" + PlayerLookBuilder.Gentleman.sheet + "): the player keeps the Medieval look.");
         // Cool daylight through the roof glass; the amber bulbs inside do the rest
         foreach (var sun in root.GetComponentsInChildren<Light>(true).Where(l => l.type == LightType.Directional)) { sun.color = new Color(0.78f, 0.86f, 1f); sun.intensity = 0.95f; sun.shadows = LightShadows.Hard; }
         PrefabUtility.SaveAsPrefabAsset(root, Prefabs + "/SteampunkEssentials.prefab"); PrefabUtility.UnloadPrefabContents(root);

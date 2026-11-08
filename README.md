@@ -169,6 +169,11 @@ LevelEssentials.prefab        + LevelInfo (era is a per-scene override)
 - **Pull before you start.** Don't edit the same scene as someone else at the same time.
 - **Commit `.meta` files with their assets.** Switch to Unity before committing new files so it creates them. A missing `.meta` means everyone's Unity invents a different ID, and references break.
 - Set **Unity → Settings → General → Script Changes While Playing** to **Recompile After Finished Playing**, so code changes don't break a running test.
+- **Fast Play mode is on:** Project Settings → Editor → Enter Play Mode Settings is set to reload the scene but **not the domain**, so pressing Play is near-instant. The catch is that static fields and static events survive between Play sessions:
+  - Reset statics in a `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]` method, as `LevelManager.ResetStatics` does.
+  - Set singletons (`Instance`) in `Awake` and clear them in `OnDestroy`.
+  - Unsubscribe from static events (`SceneManager.sceneLoaded`, `Clock.TimeChanged`...) in `OnDestroy` or `OnDisable`.
+  - If something behaves differently on the second Play, a stale static is the likely cause.
 
 ### Project layout
 

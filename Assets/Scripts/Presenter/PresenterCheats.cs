@@ -43,8 +43,13 @@ public class PresenterCheats : MonoBehaviour
     void Awake()
     {
         unlocked = Application.isEditor || Debug.isDebugBuild;
-        SceneManager.sceneLoaded += (_, _) => poiIndex = 0;
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
+
+    // Domain reload is off (fast Play mode), so static events must be unsubscribed or they pile up between sessions
+    void OnDestroy() => SceneManager.sceneLoaded -= OnSceneLoaded;
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode) => poiIndex = 0;
 
     void OnEnable()
     {
