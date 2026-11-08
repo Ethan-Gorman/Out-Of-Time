@@ -41,7 +41,14 @@ public class CavemanInventoryUI : MonoBehaviour
 
     void Update()
     {
-        if (inventoryText == null || popLeft <= 0f)
+        if (inventoryText == null)
+            return;
+
+        // Hidden once the level is finished, so the clock's results have the corner to themselves
+        var clock = Clock.Instance;
+        inventoryText.enabled = clock == null || !clock.IsFrozen;
+
+        if (popLeft <= 0f)
             return;
         popLeft = Mathf.Max(0f, popLeft - Time.deltaTime);
         float t = popLeft / popTime;

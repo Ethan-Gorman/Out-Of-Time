@@ -4,6 +4,8 @@ using UnityEngine.Events;
 // A tree or rock the player breaks for wood or stone. Each press of Interact is one hit:
 // bare hands do Hand Damage, the Stone Axe does Axe Damage. Require Axe makes hands useless (brambles).
 // Shakes on each hit in world time. Keep the art on the "Visual" child; needs a trigger collider for the range.
+// Awakes before SpriteShadowCaster, so a billboarded sprite's shadow always hangs off the pivot and shrinks with the break
+[DefaultExecutionOrder(-10)]
 public class Breakable : Interactable
 {
     public enum DestructionStyle { Fall, Crumble }
@@ -34,10 +36,21 @@ public class Breakable : Interactable
     float destroyLeft;
     bool broken;
 
+    // The art itself (visual may become a pivot above it): measured for the blocker and the debris colours,
+    // so the shadow caster that ends up under the pivot never counts as art
+    Transform art;
+
     bool HasAxe => CavemanLevel.Instance != null && CavemanLevel.Instance.HasAxe;
 
     void Awake()
     {
+        art = visual;
+
+        // A billboarded sprite resets its own rotation and position every LateUpdate, which would undo the
+        // shake and fall. So move a plain pivot instead, standing at the root's feet with the sprite inside it
+        if (visual != null && visual != transform && visual.GetComponent<Billboard>() != null)
+            visual = AddPivot(visual);
+
         if (visual != null)
         {
             visualBase = visual.localPosition;
@@ -47,11 +60,21 @@ public class Breakable : Interactable
         FitSolidToArt();
     }
 
+    // Same parent and no offset, so the sprite stays exactly where it was and Billboard's snapping still lines up
+    static Transform AddPivot(Transform sprite)
+    {
+        var pivot = new GameObject("Pivot").transform;
+        pivot.SetParent(sprite.parent, false);
+        pivot.SetSiblingIndex(sprite.GetSiblingIndex());
+        sprite.SetParent(pivot, false);
+        return pivot;
+    }
+
     // Rocks reshape their art per instance (scale, rotation, blob meshes), so the prefab's blocker can end up much
     // smaller than what you see and the player walks into the rock: grow the solid box to cover the art's footprint
     void FitSolidToArt()
     {
-        var renderers = (visual != null ? visual : transform).GetComponentsInChildren<MeshRenderer>();
+        var renderers = (art != null ? art : transform).GetComponentsInChildren<MeshRenderer>();
         if (renderers.Length == 0)
             return;  // sprite art (firewood, brambles) already has a hand-sized blocker
 
@@ -63,7 +86,7 @@ public class Breakable : Interactable
             // The art's real extent (its mesh vertices) measured along the box's own axes, since the rock may be
             // turned and stretched. Bounding-box corners would stick out far past a turned, rounded part
             bool any = false;
-            Bounds art = default;
+            Bounds extent = default;
             foreach (var r in renderers)
             {
                 var mesh = r.TryGetComponent(out MeshFilter filter) ? filter.sharedMesh : null;
@@ -72,15 +95,15 @@ public class Breakable : Interactable
                 foreach (var v in mesh.vertices)
                 {
                     Vector3 p = box.transform.InverseTransformPoint(r.transform.TransformPoint(v));
-                    if (!any) { art = new Bounds(p, Vector3.zero); any = true; }
-                    else art.Encapsulate(p);
+                    if (!any) { extent = new Bounds(p, Vector3.zero); any = true; }
+                    else extent.Encapsulate(p);
                 }
             }
             if (!any)
                 continue;
 
-            box.size = new Vector3(Mathf.Max(box.size.x, art.size.x), box.size.y, Mathf.Max(box.size.z, art.size.z));
-            box.center = new Vector3(art.center.x, box.center.y, art.center.z);
+            box.size = new Vector3(Mathf.Max(box.size.x, extent.size.x), box.size.y, Mathf.Max(box.size.z, extent.size.z));
+            box.center = new Vector3(extent.center.x, box.center.y, extent.center.z);
         }
     }
 
@@ -168,7 +191,7 @@ public class Breakable : Interactable
         CavemanFx.Play(wood ? CavemanSfx.Sound.Chop : CavemanSfx.Sound.Stone);
 
         if (materials == null)
-            materials = CavemanFx.MaterialsOf(visual != null ? visual : transform);
+            materials = CavemanFx.MaterialsOf(art != null ? art : transform);
         Vector3 center = transform.position + Vector3.up * 0.6f;
         CavemanFx.Debris(center, materials, breaking ? 10 : 3, breaking ? 0.16f : 0.1f, breaking ? 3.5f : 2.5f);
         CavemanFx.Shake(breaking ? 0.35f : (HasAxe ? 0.22f : 0.14f));

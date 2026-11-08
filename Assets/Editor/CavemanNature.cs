@@ -750,7 +750,8 @@ public static class CavemanNature
 
     // ---------- Used by CavemanSettlement (after Apply, in the same build) ----------
 
-    internal static Mesh StalagmiteMesh(int seed) => Save(Spike("Stalagmite", seed));
+    // Not saved here: the settlement keeps it in its own mesh asset, so rebuilding nature alone can't delete it
+    internal static Mesh StalagmiteMesh(int seed) => Spike("Stalagmite", seed);
     internal static Material[] WallMaterials => new[] { mountainRock, mountainGrass };
 
     // ---------- Helpers ----------

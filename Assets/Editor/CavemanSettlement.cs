@@ -219,6 +219,15 @@ public static class CavemanSettlement
         tris.Add(a); tris.Add(b); tris.Add(c);
     }
 
+    // Into this builder's own asset, so only a settlement rebuild replaces these meshes
+    static Mesh SaveMesh(Mesh mesh)
+    {
+        mesh.name = $"{mesh.name} {meshCount++}";
+        if (meshContainer == null) { AssetDatabase.CreateAsset(mesh, MeshAssetPath); meshContainer = mesh; }
+        else AssetDatabase.AddObjectToAsset(mesh, meshContainer);
+        return mesh;
+    }
+
     static Mesh SaveFlat(string name, List<Vector3> verts, List<int> tris)
     {
         var mesh = new Mesh { name = $"{name} {meshCount++}" };
@@ -419,7 +428,7 @@ public static class CavemanSettlement
         foreach (var at in spots)
         {
             var go = new GameObject("Stalagmite"); go.transform.SetParent(parent, false);
-            go.AddComponent<MeshFilter>().sharedMesh = CavemanNature.StalagmiteMesh(rng.Next());
+            go.AddComponent<MeshFilter>().sharedMesh = SaveMesh(CavemanNature.StalagmiteMesh(rng.Next()));
             go.AddComponent<MeshRenderer>().sharedMaterials = CavemanNature.WallMaterials;
             go.transform.localPosition = at;
             go.transform.localScale = new Vector3(Range(rng, 0.6f, 0.9f), Range(rng, 1.3f, 2.3f), Range(rng, 0.6f, 0.9f));
