@@ -41,6 +41,9 @@ public static class PlayerLookBuilder
     [MenuItem("Tools/Out Of Time/Build Player Looks")]
     public static void BuildAll()
     {
+        // Note: the Medieval and Steampunk scenes now override the player's sprite, controller and facing on their
+        // Essentials instance (Assets/Animations/Medieval/MedievalPlayer and Steampunk/IndustrialPlayer looks),
+        // so the prefab values written here only show up where a scene has no such override.
         var knight = Build(Knight);
         if (knight != null) ApplyToPrefab("Assets/prefabs/Medieval/MedievalEssentials.prefab", knight);
         var gentleman = Build(Gentleman);

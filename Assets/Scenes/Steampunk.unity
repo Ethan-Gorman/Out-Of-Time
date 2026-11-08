@@ -375,6 +375,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: SteampunkEssentials
       objectReference: {fileID: 0}
+    - target: {fileID: 6565984794388679850, guid: 08bc8a1a99ff89742ae8e3ae287483cc, type: 3}
+      propertyPath: leftFacingSpriteSheet
+      value:
+      objectReference: {fileID: 0}
+    - target: {fileID: 6565984794388679850, guid: 08bc8a1a99ff89742ae8e3ae287483cc, type: 3}
+      propertyPath: moreLeftFacingSpriteSheets.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6142584161578127118, guid: 08bc8a1a99ff89742ae8e3ae287483cc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

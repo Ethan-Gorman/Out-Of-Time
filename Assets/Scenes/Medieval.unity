@@ -21204,6 +21204,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: MedievalEssentials
       objectReference: {fileID: 0}
+    - target: {fileID: 7159955723425457361, guid: c59630a41e8b9e346966186b8dc4cfb9, type: 3}
+      propertyPath: leftFacingSpriteSheet
+      value:
+      objectReference: {fileID: 0}
+    - target: {fileID: 7159955723425457361, guid: c59630a41e8b9e346966186b8dc4cfb9, type: 3}
+      propertyPath: moreLeftFacingSpriteSheets.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1616710814536827554, guid: c59630a41e8b9e346966186b8dc4cfb9, type: 3}
+      propertyPath: m_Sprite
+      value:
+      objectReference: {fileID: -2438792591815859532, guid: b56031265d825454997831bb9ee2aa6c, type: 3}
+    - target: {fileID: 505287040664171058, guid: c59630a41e8b9e346966186b8dc4cfb9, type: 3}
+      propertyPath: m_Controller
+      value:
+      objectReference: {fileID: 22100000, guid: ad7d33d8b1a54447a609399b17548728, type: 2}
+    - target: {fileID: 356493377755241501, guid: c59630a41e8b9e346966186b8dc4cfb9, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 356493377755241501, guid: c59630a41e8b9e346966186b8dc4cfb9, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9061064412907834750, guid: c59630a41e8b9e346966186b8dc4cfb9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

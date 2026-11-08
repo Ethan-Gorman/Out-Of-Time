@@ -1,12 +1,36 @@
 fileFormatVersion: 2
 guid: f7eedaea5afc246fd95a248661e41288
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: 1646314726844050646
+    second: medieval-walking-sheet_0
+  - first:
+      213: -5169148428319521484
+    second: medieval-walking-sheet_1
+  - first:
+      213: -8863735193127416691
+    second: medieval-walking-sheet_2
+  - first:
+      213: 3185873616186493903
+    second: medieval-walking-sheet_3
+  - first:
+      213: -4589109093883861724
+    second: medieval-walking-sheet_4
+  - first:
+      213: 6540454546196207106
+    second: medieval-walking-sheet_5
+  - first:
+      213: 1527902732507996469
+    second: medieval-walking-sheet_6
+  - first:
+      213: -780331618231685582
+    second: medieval-walking-sheet_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
     mipMapMode: 0
-    enableMipMap: 1
+    enableMipMap: 0
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -34,29 +58,29 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
-    wrapU: 0
-    wrapV: 0
+    wrapU: 1
+    wrapV: 1
     wrapW: 0
-  nPOTScale: 1
+  nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 0
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 32
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
-  alphaIsTransparency: 0
+  alphaIsTransparency: 1
   spriteTessellationMethod: 0
   spriteTessellationDetail: -1
   spriteGeometrySubdivision: -1
-  textureType: 0
+  textureType: 8
   textureShape: 1
   singleChannelComponent: 0
   flipbookRows: 1
@@ -74,7 +98,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -87,7 +111,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -100,7 +124,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -110,23 +134,207 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: medieval-walking-sheet_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9eb55f8e6bc4f85b7f0a308a2b99c34
+      internalID: 1646314726844050646
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medieval-walking-sheet_1
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e43e15a5c99b4c51b0336f1f177e7f16
+      internalID: -5169148428319521484
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medieval-walking-sheet_2
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55a7ded4964347ce9d35b7c28b9dc926
+      internalID: -8863735193127416691
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medieval-walking-sheet_3
+      rect:
+        serializedVersion: 2
+        x: 386
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f3f79c2b076945809b7652c17a1ad0c4
+      internalID: 3185873616186493903
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medieval-walking-sheet_4
+      rect:
+        serializedVersion: 2
+        x: 514
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e563b60f70342d38acd6edad66a285e
+      internalID: -4589109093883861724
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medieval-walking-sheet_5
+      rect:
+        serializedVersion: 2
+        x: 642
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cf669c4f0c74d629af596bf0eafaedd
+      internalID: 6540454546196207106
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medieval-walking-sheet_6
+      rect:
+        serializedVersion: 2
+        x: 770
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e24a54d77b7455a8dbfd30cc60f7f29
+      internalID: 1527902732507996469
+      vertices: []
+      indices:
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: medieval-walking-sheet_7
+      rect:
+        serializedVersion: 2
+        x: 898
+        y: 78
+        width: 36
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData:
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c316e4dcbde74591b4a0452affe34b98
+      internalID: -780331618231685582
+      vertices: []
+      indices:
+      edges: []
+      weights: []
     outline: []
-    customData: 
+    customData:
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 2f051aab34fa48c6be9466bc93b5228c
     internalID: 0
     vertices: []
-    indices: 
+    indices:
     edges: []
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
-  mipmapLimitGroupName: 
+    nameFileIdTable:
+      medieval-walking-sheet_0: 1646314726844050646
+      medieval-walking-sheet_1: -5169148428319521484
+      medieval-walking-sheet_2: -8863735193127416691
+      medieval-walking-sheet_3: 3185873616186493903
+      medieval-walking-sheet_4: -4589109093883861724
+      medieval-walking-sheet_5: 6540454546196207106
+      medieval-walking-sheet_6: 1527902732507996469
+      medieval-walking-sheet_7: -780331618231685582
+  mipmapLimitGroupName:
   pSDRemoveMatte: 0
-  userData: 
-  assetBundleName: 
-  assetBundleVariant: 
+  userData:
+  assetBundleName:
+  assetBundleVariant:
