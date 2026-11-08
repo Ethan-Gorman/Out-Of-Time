@@ -5,6 +5,7 @@ using UnityEngine;
 // with its blade arms. After the spin it stops to wind its spring again. Touching it hurts; jumping on its
 // head defeats it, the same as the Medieval skeleton. Everything runs in world time with a kinematic Rigidbody.
 // Keep the art (SpriteRenderer, Animator, Billboard) on the "Sprite" child, the stomp/contact trigger on "Hitbox".
+// Has a solid capsule so the player can't walk through it; the Hitbox trigger sits just outside it.
 [RequireComponent(typeof(Rigidbody))]
 public class ClockworkGuard : MonoBehaviour
 {
@@ -36,6 +37,9 @@ public class ClockworkGuard : MonoBehaviour
     public float stompBounce = 4.5f;
     public float pauseAfterHit = 1f;
 
+    [Header("Body")]
+    public float bodyRadius = 0.38f;
+
     [Header("Art")]
     public SpriteRenderer sprite;
     public Animator animator;
@@ -46,7 +50,10 @@ public class ClockworkGuard : MonoBehaviour
 
     Rigidbody body;
     Transform player;
+    Rigidbody playerRigidbody;
     PlayerDamage playerDamage;
+    float playerRadius = 0.3f;
+    float solidRadius;
     Vector3 home;
     bool towardsB = true;
     Mode mode = Mode.Move;
@@ -66,7 +73,11 @@ public class ClockworkGuard : MonoBehaviour
         {
             player = p.transform;
             playerDamage = p.GetComponent<PlayerDamage>();
+            playerRigidbody = p.GetComponent<Rigidbody>();
+            if (p.TryGetComponent(out CapsuleCollider playerCapsule))
+                playerRadius = playerCapsule.radius;
         }
+        EnsureSolid();
 
         if (patrolA == Vector3.zero && patrolB == Vector3.zero)
         {
@@ -183,10 +194,65 @@ public class ClockworkGuard : MonoBehaviour
         Vector3 to = Flat(target - pos);
         if (to.sqrMagnitude < 0.01f)
             return;
-        body.MovePosition(pos + Vector3.ClampMagnitude(to.normalized * speed * dt, to.magnitude));
-        moving = true;
         if (sprite != null && mode != Mode.Spin && Mathf.Abs(to.x) > 0.01f)
             sprite.flipX = to.x < 0f;
+
+        Vector3 step = StopAtPlayer(pos, Vector3.ClampMagnitude(to.normalized * speed * dt, to.magnitude));
+        if (step.sqrMagnitude < 0.000001f)
+            return;
+        body.MovePosition(pos + step);
+        moving = true;
+    }
+
+    // A solid capsule on the guard itself (the prefab's, or a new one), wide enough to match the art.
+    // The Hitbox trigger is kept a bit wider than it, so the player still touches the trigger (contact hit,
+    // stomp) before the solid body stops them. Kinematic bodies don't collide with each other, so guards
+    // never get stuck on one another
+    void EnsureSolid()
+    {
+        CapsuleCollider solid = null;
+        foreach (var c in GetComponents<CapsuleCollider>())
+            if (!c.isTrigger) { solid = c; break; }
+
+        if (solid == null)
+        {
+            solid = gameObject.AddComponent<CapsuleCollider>();
+            solid.height = 1f;
+            solid.center = new Vector3(0f, 0.5f, 0f);
+        }
+        solid.radius = Mathf.Max(solid.radius, bodyRadius);
+        solidRadius = solid.radius;
+
+        foreach (var c in GetComponentsInChildren<CapsuleCollider>())
+            if (c.isTrigger)
+                c.radius = Mathf.Max(c.radius, solidRadius + 0.1f);
+    }
+
+    // A kinematic body shoves the player out of its way, which can squash them into a wall.
+    // So the guard walks (or spins) up to the player and stops when the two bodies touch, instead of walking
+    // into them. Sideways movement is kept so it can still slide round them. Doesn't block while the player is above (stomping)
+    Vector3 StopAtPlayer(Vector3 pos, Vector3 step)
+    {
+        if (player == null)
+            return step;
+
+        // The physics position, not the interpolated transform, so the gap matches what the colliders see
+        Vector3 playerPos = playerRigidbody != null ? playerRigidbody.position : player.position;
+        if (Mathf.Abs(playerPos.y - pos.y) > 0.9f)
+            return step;
+
+        Vector3 toPlayer = Flat(playerPos - pos);
+        float distance = toPlayer.magnitude;
+        if (distance < 0.001f)
+            return step;
+
+        Vector3 dir = toPlayer / distance;
+        float towards = Vector3.Dot(step, dir);
+        if (towards <= 0f)
+            return step;
+
+        float room = Mathf.Max(0f, distance - (solidRadius + playerRadius));
+        return step - dir * towards + dir * Mathf.Min(towards, room);
     }
 
     // The Hitbox child's trigger reports here (trigger messages go to the Rigidbody's object)

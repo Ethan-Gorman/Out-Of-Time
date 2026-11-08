@@ -4,6 +4,7 @@ using UnityEngine;
 // Touching it hurts; jumping on its head defeats it.
 // Moves in world time with a kinematic Rigidbody, like EnemyChase.
 // Keep the art (SpriteRenderer, Animator, Billboard) on the "Sprite" child.
+// Has a solid capsule so the player can't walk through it; the Hitbox trigger sits just outside it.
 [RequireComponent(typeof(Rigidbody))]
 public class SkeletonEnemy : MonoBehaviour
 {
@@ -23,6 +24,9 @@ public class SkeletonEnemy : MonoBehaviour
     public float stompBounce = 4.5f;
     public float pauseAfterHit = 1f;
 
+    [Header("Body")]
+    public float bodyRadius = 0.36f;
+
     [Header("Art")]
     public SpriteRenderer sprite;
     public Animator animator;
@@ -31,6 +35,9 @@ public class SkeletonEnemy : MonoBehaviour
 
     Rigidbody body;
     Transform player;
+    Rigidbody playerRigidbody;
+    float playerRadius = 0.3f;
+    float solidRadius;
     Vector3 home;
     bool towardsB = true;
 
@@ -47,7 +54,13 @@ public class SkeletonEnemy : MonoBehaviour
 
         var p = GameObject.FindWithTag("Player");
         if (p != null)
+        {
             player = p.transform;
+            playerRigidbody = p.GetComponent<Rigidbody>();
+            if (p.TryGetComponent(out CapsuleCollider playerCapsule))
+                playerRadius = playerCapsule.radius;
+        }
+        EnsureSolid();
 
         if (patrolA == Vector3.zero && patrolB == Vector3.zero)
         {
@@ -102,11 +115,14 @@ public class SkeletonEnemy : MonoBehaviour
             return;
 
         Vector3 step = Vector3.ClampMagnitude(to.normalized * speed * WorldTime.FixedDelta, to.magnitude);
-        body.MovePosition(pos + step);
-        moving = true;
-
         if (sprite != null && Mathf.Abs(to.x) > 0.01f)
             sprite.flipX = to.x < 0f;
+
+        step = StopAtPlayer(pos, step);
+        if (step.sqrMagnitude < 0.000001f)
+            return;
+        body.MovePosition(pos + step);
+        moving = true;
     }
 
     // The Hitbox child's trigger reports here (trigger messages go to the Rigidbody's object).
@@ -140,6 +156,57 @@ public class SkeletonEnemy : MonoBehaviour
             if (player.Hit(body.position, contactTimeCost))
                 pauseLeft = pauseAfterHit;
         }
+    }
+
+    // A solid capsule on the skeleton itself (the prefab's, or a new one), wide enough to match the art.
+    // The Hitbox trigger is kept a bit wider than it, so the player still touches the trigger (contact hit,
+    // stomp) before the solid body stops them. Kinematic bodies don't collide with each other, so skeletons
+    // never get stuck on one another
+    void EnsureSolid()
+    {
+        CapsuleCollider solid = null;
+        foreach (var c in GetComponents<CapsuleCollider>())
+            if (!c.isTrigger) { solid = c; break; }
+
+        if (solid == null)
+        {
+            solid = gameObject.AddComponent<CapsuleCollider>();
+            solid.height = 1f;
+            solid.center = new Vector3(0f, 0.5f, 0f);
+        }
+        solid.radius = Mathf.Max(solid.radius, bodyRadius);
+        solidRadius = solid.radius;
+
+        foreach (var c in GetComponentsInChildren<CapsuleCollider>())
+            if (c.isTrigger)
+                c.radius = Mathf.Max(c.radius, solidRadius + 0.1f);
+    }
+
+    // A kinematic body shoves the player out of its way, which can squash them into a wall.
+    // So the skeleton walks up to the player and stops when the two bodies touch, instead of walking into them.
+    // Sideways movement is kept so it can still slide round them. Doesn't block while the player is above (stomping)
+    Vector3 StopAtPlayer(Vector3 pos, Vector3 step)
+    {
+        if (player == null)
+            return step;
+
+        // The physics position, not the interpolated transform, so the gap matches what the colliders see
+        Vector3 playerPos = playerRigidbody != null ? playerRigidbody.position : player.position;
+        if (Mathf.Abs(playerPos.y - pos.y) > 0.9f)
+            return step;
+
+        Vector3 toPlayer = Flat(playerPos - pos);
+        float distance = toPlayer.magnitude;
+        if (distance < 0.001f)
+            return step;
+
+        Vector3 dir = toPlayer / distance;
+        float towards = Vector3.Dot(step, dir);
+        if (towards <= 0f)
+            return step;
+
+        float room = Mathf.Max(0f, distance - (solidRadius + playerRadius));
+        return step - dir * towards + dir * Mathf.Min(towards, room);
     }
 
     public void Die()
