@@ -7,13 +7,32 @@ using UnityEngine.InputSystem;
 // Sits on MedievalPlayer.
 public class MedievalInteractor : MonoBehaviour
 {
+    // The player's interactor, for outlines that react to range and selection
+    public static MedievalInteractor Current { get; private set; }
+
+    // The one Interact would use right now (closest usable in range), or null
+    public Interactable Selected { get; private set; }
+
     readonly List<Interactable> nearby = new List<Interactable>();
     InputAction interact;
     string shownPrompt;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics()
+    {
+        Current = null;
+    }
+
+    public bool IsNearby(Interactable target) => nearby.Contains(target);
+
     void Awake()
     {
         interact = InputSystem.actions.FindAction("Player/Interact");
+    }
+
+    void OnEnable()
+    {
+        Current = this;
     }
 
     public void Enter(Interactable target)
@@ -30,6 +49,9 @@ public class MedievalInteractor : MonoBehaviour
     void OnDisable()
     {
         ShowPrompt(null);
+        Selected = null;
+        if (Current == this)
+            Current = null;
     }
 
     void Update()
@@ -51,6 +73,7 @@ public class MedievalInteractor : MonoBehaviour
             }
         }
 
+        Selected = best;
         ShowPrompt(best != null ? $"[E]  {best.Prompt}" : null);
 
         // WasPressedThisFrame reacts to the press itself, so the action's Hold interaction doesn't delay it

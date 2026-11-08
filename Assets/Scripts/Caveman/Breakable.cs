@@ -51,6 +51,7 @@ public class Breakable : Interactable
         : (HasAxe ? "Chop" : "Hit") + (resource == CavemanLevel.Resource.Wood ? " tree" : " rock");
 
     public override bool CanInteract => !broken;
+    public override bool KeepUsedOutline => false;
 
     public override void Interact(MedievalInteractor interactor)
     {

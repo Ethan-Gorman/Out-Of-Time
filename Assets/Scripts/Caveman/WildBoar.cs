@@ -44,6 +44,8 @@ public class WildBoar : Interactable
 
     public override string Prompt => "attack boar";
     public override bool CanInteract => !dead;
+    public override bool KeepUsedOutline => false;
+    public override bool IsEnemy => true;
 
     void Awake()
     {

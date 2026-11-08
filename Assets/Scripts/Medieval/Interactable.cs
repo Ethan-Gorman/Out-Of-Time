@@ -15,6 +15,13 @@ public abstract class Interactable : MonoBehaviour
 
     public abstract void Interact(MedievalInteractor interactor);
 
+    // Outline (InteractOutline): glowing while usable, grey once used if it stays in the world.
+    // Override to hide it instead once used (things that break or die), to only show it while it is the selected
+    // one (villagers), or to outline it red (enemies)
+    public virtual bool KeepUsedOutline => true;
+    public virtual bool OutlineOnlyInRange => false;
+    public virtual bool IsEnemy => false;
+
     protected virtual void OnTriggerEnter(Collider other)
     {
         var interactor = FindInteractor(other);
