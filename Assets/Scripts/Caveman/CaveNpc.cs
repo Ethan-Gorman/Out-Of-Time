@@ -15,6 +15,21 @@ public class CaveNpc : Interactable
     // Talking: each press shows the next line, then it wraps around
     [TextArea] public string[] lines;
     public string talkPrompt = "Talk";
+    // Name on the dialogue's name plate. Empty = by era: "Caveman", "Factory Worker" (Steampunk), else "Villager"
+    public string speakerName = "";
+
+    public string SpeakerName
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(speakerName))
+                return speakerName;
+            var info = FindAnyObjectByType<LevelInfo>();
+            Era era = info != null ? info.era
+                : LevelManager.Instance != null ? LevelManager.Instance.CurrentEra : Era.Caveman;
+            return era == Era.Caveman ? "Caveman" : era == Era.Steampunk ? "Factory Worker" : "Villager";
+        }
+    }
 
     // Walking a circle around Orbit Center (0 radius = stays put)
     public Vector3 orbitCenter;
@@ -102,8 +117,17 @@ public class CaveNpc : Interactable
     {
         if (!CanInteract || MedievalUI.Instance == null)
             return;
-        MedievalUI.Instance.Say(lines[nextLine % lines.Length]);
+        MedievalUI.Instance.Talk(this, SpeakerName, lines[nextLine % lines.Length]);
         nextLine++;
+    }
+
+    // Walking away ends the conversation, so paused thoughts / story lines come back straight away
+    protected override void OnTriggerExit(Collider other)
+    {
+        base.OnTriggerExit(other);
+        if (MedievalUI.Instance != null && other.attachedRigidbody != null
+            && other.attachedRigidbody.GetComponent<MedievalInteractor>() != null)
+            MedievalUI.Instance.EndTalk(this);
     }
 
     void Update()
