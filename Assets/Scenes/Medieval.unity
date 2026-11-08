@@ -20655,7 +20655,7 @@ MonoBehaviour:
   returnObjective: Return to the time machine
   repairedLines:
   - It's working! The time machine is repaired.
-  - 'Next stop: the Industrial Era.'
+  - 'Next stop: the Steampunk Era.'
   boardObjective: Board the time machine
   departLines:
   - Hmm... the dial won't go past the Medieval Era yet.

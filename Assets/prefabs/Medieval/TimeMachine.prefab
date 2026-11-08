@@ -1267,7 +1267,7 @@ MonoBehaviour:
   brokenVisual: {fileID: 3509178965878587017}
   repairedVisual: {fileID: 1111672891356277122}
   glow: {fileID: 7303246479822751764}
-  loadNextEra: 0
+  loadNextEra: 1
   brokenLines:
   - It's completely dead. I need a Time Crystal to power it.
   onRepaired:
